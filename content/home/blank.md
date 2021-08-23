@@ -18,7 +18,7 @@ subtitle:
 design:
   columns: "1"
   background:
-    image: Claude_Monet_-_La_Corniche_near_Monaco_(1884).jpg
+    image: Monet-La-Corniche-Monaco.jpg
     image_darken: 1.5
     image_parallax: true
     image_position: center
