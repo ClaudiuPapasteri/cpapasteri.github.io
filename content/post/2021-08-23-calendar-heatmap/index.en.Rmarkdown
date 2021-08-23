@@ -1,0 +1,243 @@
+---
+title: Calendar heatmap with ggplot2/plotly
+author: Claudiu C. Papasteri
+date: '2021-08-23'
+slug: calendar-heatmap
+categories:
+  - R
+tags:
+  - ggplot2
+  - plotly
+  - heatmap
+  - calendar
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2021-08-23T13:40:26+03:00'
+featured: yes
+image: 
+  caption: ''
+  focal_point: ''
+  preview_only: yes
+projects: []
+---
+
+
+### Reasons and inspiration
+
+I was working on a dashboard for our psychology clinic admissions. We need to keep track of appointments to organized our staff. I thought I would make a handy heatmap calendar to show each month the number of admissions to certain services. This heatmap calendar can then sit inside the dashboard that is linked to our admission online form.
+
+I found some inspiration (https://vietle.info/post/calendarheatmap/) on an R-related blog but that blog does not exist any more. 
+
+Working with dates and datetimes is annoying in any language. Fortunately, the `lubridate` package exists to make our life easier. If you are not familiar with `lubridate`, I suggest trying out a course on [Datacamp](https://www.datacamp.com/courses/working-with-dates-and-times-in-r).
+
+
+
+### Requirements
+
+First, we load our packages.
+
+```{r, echo=FALSE, results=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse) # contains ggplot2 (for plot) and dplyr (for easy data manipulation)
+library(lubridate) # For date and time manipulation
+library(plotly)
+```
+
+Then we need to be mindful of hour our date needs to look for plotting. `ggplot2` works only with data frames, so our data should look something like this:
+
+```{r}
+# How the data should look for plotting
+set.seed(200)
+df  <-  tibble(
+  DateCol = seq(
+    dmy("01/01/2019"),
+    dmy("31/12/2019"),
+    by = "days"
+  ),
+  ValueCol = rpois(365, 1)   # vector of dates for clinic admissions (would get this from the online form) 
+)
+
+head(df, 20)
+```
+
+The *ValueCol* represents the number of clinic admissions on that day. I imagined that admissions are sort of a poisson-process so I used the poisson distribution to sample them. 
+
+We will also have to keep in mind that leap years and months exist.
+
+```{r}
+# Careful of leap years, leap months and number of days in months
+lubridate::leap_year(2008) 
+lubridate::days_in_month(3)
+```
+
+
+
+### Going to work
+
+Our plot will always need the calendar template so we need to generate dates data for each month/year.
+
+```{r}
+# Function that generates day dates for given year or given month in year; works with leap years and leap months
+ # year = year as number or string of digits
+ # month = month number, string of full name or abbreviation
+get_dates <- function(year, month = NULL) {
+  if(!is.na(as.numeric(year))) {
+    year <- as.character(year)
+  } else stop("Error parsing year") 
+  dates_in_year <- 
+    seq(
+      lubridate::dmy(paste("01/01/", year, sep = "")),   # works as well: as.Date(paste(year, "-01-01", sep = "")),
+      lubridate::dmy(paste("31/12/", year, sep = "")),   # works as well: as.Date(paste(year, "-12-31", sep = "")), 
+      by = "+1 day"
+    )
+  if(is.null(month)) {
+    dates_in_year
+  } else {
+      if(grepl("^[0-9]{1,}$", month)) {             # check if numeric or string of digits
+        month <- as.numeric(month)
+      } else if(month %in% month.abb[1:12]) {       # string of abbreviated month  
+        month <- match(month, month.abb[1:12])
+      } else if(month %in% month.name[1:12]) {      # string of abbreviated month  
+        month <- match(month, month.name[1:12])
+      } else { 
+        stop("Error parsing month") 
+      }
+      subset(dates_in_year, lubridate::month(dates_in_year) == month)  # works as well: format.Date(date, "%m") == month
+  }
+}
+```
+
+This function generates dates for our year/month. For testing, I write another function that generates dates according to a poisson-process, much like we woud get from our online admission form. 
+
+```{r}
+# Generates dates by poisson sampling for function testing purposes
+sim_dates_poisson <- function(year, month = NULL, lambda = 1) {
+  dates <- get_dates(year = year, month = month)
+  n <- length(dates)
+  sampled <- rpois(n = n, lambda = lambda)
+  rep(x = dates, times = sampled)
+}
+```
+
+Let's generate some data like the type we would get from an online form and transform it according to protting requirements.
+
+```{r}
+# Generate a dataframe according to plotting requirements
+dates_2019 <- get_dates(year = "2019")               # generate vector of dates for the respective year
+dates_2019 <- data.frame(DateCol = dates_2019)
+set.seed(102)
+admisions_2019 <- sim_dates_poisson(year = "2019")   # vector of dates for clinic admissions (would get this from the online form)
+admisions_2019 <- data.frame(AdmissionCol = admisions_2019) %>%
+  group_by(AdmissionCol) %>% 
+  summarise(ValueCol = n())                          # count the number of clinic admissions based on dates for clinic admissions
+
+df <- dplyr::left_join(dates_2019, admisions_2019, by = c("DateCol" = "AdmissionCol")) %>%
+  dplyr::mutate(ValueCol = tidyr::replace_na(ValueCol, 0))
+
+head(df, 20)
+```
+
+Looks good ❤️
+
+Now we need to transform it more to take account of local settings. I wanted this in English, but you see it will be easy to set it to any language from here, including month abbreviations. Just take care to change that `"Dec"` that stands for December and do not forgget to make needed changes if you use isoweek/epiweek. 
+
+```{r}
+# Transform: need Week date, Week of the month, Week of the year, Month of the year, Date of the year
+dfPlot <- df %>% 
+  mutate(weekday = lubridate::wday(DateCol, label = T, week_start = 1, local = Sys.setlocale("LC_TIME", "English")), # week_start = 1 for Monday; 7 for Sunday
+         month = lubridate::month(DateCol, label = T, local = Sys.setlocale("LC_TIME", "English")),
+         date = lubridate::yday(DateCol),
+         week = lubridate::isoweek(DateCol))      # isoweek starts Monday; epiweek starts Sunday               
+
+# isoweek makes the last week of the year as week 1, so need to change that to week 53 for the plot
+dfPlot$week[dfPlot$month == "Dec" & dfPlot$week == 1] = 53 
+
+dfPlot <- dfPlot %>% 
+  group_by(month) %>% 
+  mutate(monthweek = 1 + week - min(week))
+```
+
+
+
+### Plots
+#### Year plot
+
+We are now ready for plotting. Let's start with a whole year plot. 
+
+```{r, message=FALSE, warning=FALSE, fig.height=13, fig.width=10}
+# Plot Yearly Calendar
+year_plot <- 
+  dfPlot %>%
+    ggplot(aes(x = weekday, y = -week, fill = ValueCol)) +
+    geom_tile(colour = "white")  + 
+    geom_text(aes(label = day(DateCol)), size = 2.5, color = "black") +
+    theme(panel.spacing = unit(3, "lines"),   # specially for plotly to not overlap facets
+          aspect.ratio = 1/2,
+          legend.position = "top",
+          legend.key.width = unit(3, "cm"),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          axis.text.y = element_blank(),
+          panel.grid = element_blank(),
+          axis.ticks = element_blank(),
+          panel.background = element_blank(),
+          legend.title.align = 0.5,
+          strip.background = element_blank(),
+          strip.text = element_text(face = "bold", size = 15),
+          panel.border = element_rect(colour = "grey", fill = NA, size = 1),
+          plot.title = element_text(hjust = 0.5, size = 21, face = "bold",
+                                    margin = margin(0, 0, 0.5, 0, unit = "cm"))) +
+    scale_fill_gradientn(colours = c("#6b9235", "white", "red"),
+                         values = scales::rescale(c(-1, -0.05, 0, 0.05, 1)), 
+                         name = "Values",
+                         guide = FALSE        # if you want legend:  guide = guide_colorbar(title.position = "top", direction = "horizontal")
+                         ) +
+    facet_wrap(~month, nrow = 4, ncol = 3, scales = "free") +
+    labs(title = "Calendar heatmap 2019")
+
+# Transform to plotly graph
+plotly::ggplotly(year_plot, tooltip = "ValueCol") %>% 
+  plotly::layout(autosize = F, width = 700, height = 1200)
+```
+
+
+#### Month plot
+To get the month plot we only need to `filter` the data to the respective month. 
+
+```{r, message=FALSE, warning=FALSE, fig.height=6, fig.width=6}
+chose_month <- "Jan"
+
+# Plot Month from Calendar
+month_graph <- 
+  dfPlot %>%
+    dplyr::filter(month == chose_month) %>%
+    ggplot(aes(weekday, -week, fill = ValueCol)) +
+    geom_tile(colour = "white")  + 
+    geom_text(aes(label = day(DateCol)), size = 2.5, color = "black") +
+    theme(aspect.ratio = 1/2,
+          legend.position = "none",    # if you want legend: legend.position = "top"
+          legend.key.width = unit(3, "cm"),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          axis.text.y = element_blank(),
+          panel.grid = element_blank(),
+          axis.ticks = element_blank(),
+          panel.background = element_blank(),
+          legend.title.align = 0.5,
+          strip.background = element_blank(),
+          strip.text = element_text(face = "bold", size = 15),
+          panel.border = element_rect(colour = "grey", fill = NA, size = 1),
+          plot.title = element_text(hjust = 0.5, size = 21, face = "bold",
+                                    margin = margin(0, 0, 0.5, 0, unit = "cm"))) +
+    scale_fill_gradientn(colours = c("#6b9235", "white", "red"),
+                         values = scales::rescale(c(-1, -0.05, 0, 0.05, 1)), 
+                         name = "Values",
+                         guide = guide_colorbar(title.position = "top", 
+                                                direction = "horizontal")) +
+    labs(title = paste0(chose_month, " ", "2019"))
+
+# Transform to plotly graph
+plotly::ggplotly(month_graph, tooltip = "ValueCol")
+```
+
+I didn't have the time to wrap these inside functions, but it will be an easy process. For the dashboard it isn't even necessary because it will be a single widget. 
