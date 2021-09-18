@@ -1,0 +1,312 @@
+---
+title: Fuzzy matching with custom functions
+author: Claudiu C. Papasteri
+date: '2021-09-18'
+slug: fuzzy-matching-with-custom-functions
+categories:
+  - R
+tags:
+  - stringdist
+  - fuzzyjoin
+  - fuzzy
+  - approximate
+  - match
+  - join
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2021-09-18T14:00:50+03:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+### The problem at hand
+
+Matching multiple datasets based on one or more columns is a very
+commonly utilized procedure in data science. Usually, we are lucky
+enough to have a common unique identifier between these datasets.
+
+One scenario in which I never come across perfect identifiers is with
+faculty work, primarily datasets with student grades. These datasets
+have columns like `name`, `email` and `student_id` which may serve as
+unique identifiers but sometimes they are not unique (e.g. same name) or
+sometimes they fail as identifiers because of human error (e.g. typos).
+
+One of the simple solutions for this problem is to do a
+`dplyr::full_join()` on the best unique identifier column, hope for the
+best and then sort the unmatched rows by hand. This is cumbersome and
+does not allow for smart automation (i.e. every time you have to do this
+task it will take you arbitary amounts of time depending on dataset).
+
+Fortunately, we can also use fuzzy matching to address human errors and
+match on multiple identifiers in order to make this workflow as robust
+as possible by using custom functions tailored to the specifics of each
+identifier. Fuzzy matching relies on string distance metrics to arrive
+at a decision where to match or not. Using multiple functions to arrive
+at a better match was inspired by the [Intermediate Regular Expressions
+in R](https://www.datacamp.com/courses/intermediate-regular-expressions-in-r)
+course on DataCamp.
+
+#### String distance metrics
+
+There are many flavors of string metrics. We generally distinguish
+between edit-based distances, q-gram-based distances, heuristic
+distances, kernel-based distances, and distances based on phonetic
+algorithms.
+
+##### Phonetic Algorithms
+
+Phonetic algorithms aim to match strings that sound similar when they
+are pronounced by transforming a string to some kind of phonetic string
+that represents pronunciation features. Most notable distances are
+Soundex and the powerful indexing system called Double Metaphone that
+replaced it and its successors.
+
+These algorithms are implemented in the package {phonics} and probably
+several other. Unfortunately, the original algorithms were developed for
+standard English phonetics and are defined only for inputs over the
+standard English alphabet, i.e., "A-Z.".
+
+##### q-gram-based distances
+
+Distances based on q-grams are computed by first deriving an integer
+vector from strings and defining a distance measure on the space of
+vectors. These distances are very useful with long text strings with big
+edit distances (e.g. sequence/paragraph exchange) where edit-based
+distances may become impractical.
+
+This is not the case with names and other personal identifiers.
+
+##### Notable edit-based distances
+
+The Levenshtein distance is defined to be the minimum number of edit
+operations required to transform string a into string b, were edit
+operations are:
+
+-   delete
+
+-   insert
+
+-   substitute
+
+-   copy
+
+The optimal string alignment distance, which is also referred to as the
+restricted Damerau-Levenshtein distance, allows for all of these edits
+and limited transpositions of adjacent characters.
+
+##### Heuristic metrics
+
+The Jaro distance was originally developed at the US bureau of the
+Census as part of an application called UNIMATCH. The purpose of this
+program was to match records based on inexact text fields, mostly name
+and address data.
+
+Jaro-Winkler similarity measure is a variant of the Jaro metric based on
+empirical studies that fewer errors typically occur at the beginning of
+names.
+
+#### Picking a metric
+
+For our string-matching purposes (matching proper nouns or e-mail
+addresses) we will here only consider edit-based distances or heuristic
+metrics, although phonetic-based distances and q-gram-based distances
+may also be well suited for these data. More specifically, we will end
+up using the Jaro-Winkler distance to match names.
+
+### Example data
+
+The hypothetical data was inspired by this python blog
+[post](https://towardsdatascience.com/python-tutorial-fuzzy-name-matching-algorithms-7a6f43322cc5).
+
+```{r, echo=FALSE, results=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+```{r, echo=FALSE}
+df_names <- 
+  tibble::tribble(
+                    ~Challenge,                 ~x,                ~y,
+         "Phonetic Similarity",     "Klaus Werner",    "Claus Verner",
+    "Missing Spaces & Hyphens",      "Peter Lower",      "PeterLower",
+    "Missing Spaces & Hyphens",  "Anne Meier-King", "Anne Meier King",
+          "Missing Components",  "Peter James Low",       "Peter Low",
+                "Abreviaitons",   "Jane Mona-King",    "Jane M. King",
+     "Out of Order Components",     "Joe John Low",    "Low John Joe",
+                   "Nicknames",    "Wiiliam James",      "Bill James",
+          "Multiple Languages",      "José Müller",     "Jose Muller",
+                    "Initials", "James Earl Smith",      "J.E. Smith",
+                       "Typos",      "John Bowlby",      "Jonh Balby",
+                "Not unique 1",       "John James",      "John James",
+        "Not unique 2 & typos",       "John James",       "John Jams"
+  )
+
+knitr::kable(df_names) %>%
+  kableExtra::kable_styling() %>%
+  kableExtra::column_spec(1, background = "#C0C0C0")
+```
+
+The second column to match on that I usually have at my disposal is
+either a student ID or an institutional email. Both work virtually the
+same way and we can use the same string distance metrics even though
+emails contain mostly characters while IDs contain mostly digits. Typos
+are the most frequent challenge with these data.
+
+Let's take a look at some sample data. I have kept the name challeges
+from above and added an ID column with some errors.
+
+```{r}
+df_x <- 
+  tibble::tribble(
+              ~name_x,  ~id_x,
+       "Klaus Werner", 11991L,
+        "Peter Lower", 12621L,
+    "Anne Meier-King", 22517L,
+    "Peter James Low", 11212L,
+     "Jane Mona-King", 21930L,
+       "Joe John Low", 22860L,
+      "Wiiliam James", 22872L,
+        "José Müller", 21259L,
+   "James Earl Smith", 21314L,
+        "John Bowlby", 12481L,
+         "John James", 12298L,
+         "John James", 11024L
+  )
+
+df_y <- 
+  tibble::tribble(
+             ~name_y,   ~id_y,
+      "Claus Verner",  11199L,
+        "PeterLower",  13621L,
+   "Anne Meier King",  22517L,
+         "Peter Low", 112121L,
+      "Jane M. King",  21930L,
+      "Low John Joe",   2286L,
+        "Bill James",  22872L,
+       "Jose Muller",  22259L,
+        "J.E. Smith",  22314L,
+        "Jonh Balby",  12181L,
+        "John James",  12288L,
+         "John Jams",  91024L
+  )
+```
+
+### Fuzzy matching on a single column
+
+```{r, results=FALSE, message=FALSE, warning=FALSE}
+# Load packages
+library(stringdist)
+library(fuzzyjoin)
+library(dplyr)
+```
+
+Here we will join the data frames on a maximum string distance of 2
+using Optimal String Alignment (these are the defaults for {`fuzzyjoin`}
+functions like `stringdist_join`).
+
+When working with text data we usually do some preprocessing like
+transforming all characters to lower case or excluding special symbols,
+stripping white spaces etc.Here we don't need to do preprocessing, we
+can just set `ignore_case = TRUE` in the join function of {`fuzzyjoin`}.
+
+```{r}
+## Joining only on names
+joined <- fuzzyjoin::stringdist_full_join(
+  df_x,
+  df_y,
+  by = c("name_x" = "name_y"),
+  max_dist = 2,                 # default value
+  method = "osa",               # default method
+  distance_col = "distance",
+  ignore_case = TRUE
+)
+
+# Print the number of rows of the newly created data frame
+print(glue::glue(
+  "joining two dataframes with {x} and {y} rows resulted in a dataframe with {z} rows",
+  x = nrow(df_x),
+  y = nrow(df_y),
+  z = nrow(joined)
+))
+
+joined
+```
+
+We can see that this very permissive procedure made some incorrect
+matches and also failed to match some cases.We could change the
+`max_dist` to another value to try to optimize the
+[sensitivity/specificity
+trade-off](https://en.wikipedia.org/wiki/Sensitivity_and_specificity),
+but we won't probably go very far with this data.
+
+### Finding matches based on two conditions
+
+We will now try a more sophisticated approach: creating two custom
+helper functions that match entries that are similar or equal. We will
+use [Jaro--Winkler
+distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance)
+to match names and [Damerau-Levenshtein
+distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance)
+to match IDs.
+
+For more info on distance metrics in the {`fuzzyjoin`} or {`stringdist`}
+packages:
+
+```{r, eval=FALSE, results=FALSE}
+# Read more about methods
+?stringdist::`stringdist-metrics`
+```
+
+```{r, message=FALSE, warning=FALSE}
+# Helper function 1 - Calculate the string distance for names with JW method
+is_name_distance_below_threshold <- function(left, right) {
+  stringdist::stringdist(left, right, method = "jw") < 1    # set max distance to 1
+}
+
+# Helper function 2 - Calculate the string distance for IDs with DL method
+is_id_distance_below_threshold <- function(left, right) {
+  stringdist::stringdist(left, right, method = "dl") < 2    # set max distance to 2
+}
+
+# Join by name and id with our two helper functions
+joined <- fuzzyjoin::fuzzy_full_join(
+  df_x, df_y,
+  by = list(x = c("name_x", "id_x"), y = c("name_y" ,"id_y")),
+  match_fun = list(is_name_distance_below_threshold, is_id_distance_below_threshold)
+)
+
+# Print the number of rows of the newly created data frame
+print(glue::glue(
+  "joining two dataframes with {x} and {y} rows resulted in a dataframe with {z} rows",
+  x = nrow(df_x),
+  y = nrow(df_y),
+  z = nrow(joined)
+))
+
+joined
+```
+
+Interestingly, only the phonetically similar name with very different ID
+remained unmatched.
+
+```{r, echo=FALSE, eval=FALSE, results=FALSE, message=FALSE, warning=FALSE}
+# Alternative call to fuzzy_join if the column names match perfectly between datasets
+df_xx <- df_x
+names(df_xx) <- c("name", "id")
+df_yy <- df_y
+names(df_yy) <- c("name", "id")
+
+joined <- fuzzyjoin::fuzzy_full_join(
+  df_xx, df_yy,
+  by = c("name", "id"),
+  match_fun = c("name" = is_name_distance_below_threshold, 
+                "id" = is_id_distance_below_threshold)
+)  
+```
