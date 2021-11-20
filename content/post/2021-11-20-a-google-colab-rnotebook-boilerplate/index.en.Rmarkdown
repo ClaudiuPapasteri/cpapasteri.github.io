@@ -36,7 +36,7 @@ Now we have a lot of of our data in a shared Google Drive (e.g. some data is com
 
 -   The easiest way to instantly generate a notebook with R runtime is to click this [link](https://colab.research.google.com/notebook#create=true&language=r).
 
--   Another way is to created one default (with Python runtime) and go to Runtime  Change runtime type and choose R.
+-   Another way is to create a default one (with Python runtime) and go to "Runtime" → "Change runtime type" and choose R.
 
 -   The third option would be to clone my boilerplate from [GitHub](https://github.com/ClaudiuPapasteri/Google-colab/blob/main/Google_colab_Rnotebook_temp.ipynb). You can run it yourself from [here](https://colab.research.google.com/github/ClaudiuPapasteri/Google-colab/blob/main/Google_colab_Rnotebook_temp.ipynb).
 
@@ -46,7 +46,7 @@ Much like Jupyter or Rnotebooks, it is very easy to get going. Just insert and f
 
 #### 3. Link Colab to GitHub and save the notebook in a repo
 
-Follow: "File" → "Save a copy in GitHub". Once that is clicked it will ask for the authorization of your git account. Finally, you will be able to save the collaboratory notebook into the repository of your choice.
+Follow: "File" → "Save a copy in GitHub". Once that is clicked it will ask for the authorization of your git account. Finally, you will be able to save the collaboratory notebook into the repository of your choice. See more info on the [here](https://cloud.google.com/vertex-ai/docs/workbench/user-managed/save-to-github). 
 
 To open a GitHub file under Colab you can do either of the following:
 
