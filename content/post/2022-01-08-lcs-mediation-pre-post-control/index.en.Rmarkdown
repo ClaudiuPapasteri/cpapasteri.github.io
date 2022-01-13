@@ -79,7 +79,7 @@ $$
 
 <figcaption>
 
-LCS specification of the ANCOVA two-wave mediation model.
+LCS specification of the ANCOVA two-wave mediation model (Valente & MacKinnon, 2017).
 
 </figcaption>
 

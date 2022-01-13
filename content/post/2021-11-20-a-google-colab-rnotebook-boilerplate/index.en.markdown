@@ -24,7 +24,7 @@ projects: []
 
 ### Motivation
 
-[Google Colab](https://research.google.com/colaboratory/faq.html) is a great free could computing resource. The best part is that it uses Jupyter-like Notebooks that support R runtime out of the box (no need to install kernel or anything), and these notebooks life in your Google Drive <i class="fab fa-google-drive"></i>.
+[Google Colab](https://research.google.com/colaboratory/faq.html) is a great free could computing resource. The best part is that it uses Jupyter-like Notebooks that support R runtime out of the box (no need to install kernel or anything), and these notebooks live in your Google Drive <i class="fab fa-google-drive"></i>.
 
 Me and my colleagues use different scripts that needed to be run periodically or on schedule. The problem is that some colleagues do not have R installed and aren't really interested in the code. So for several projects I just bundled up the scripts with an [RPortable](https://sourceforge.net/projects/rportable/) and batch file to run the scrips. Needless to say this was not very efficient.
 

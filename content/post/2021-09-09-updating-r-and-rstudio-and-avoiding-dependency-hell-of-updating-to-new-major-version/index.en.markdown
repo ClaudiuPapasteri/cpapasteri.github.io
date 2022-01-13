@@ -25,7 +25,7 @@ projects: []
 
 ### Updating R (for Windows)
 
-The most straight forward way to update R on Windows is to use the `installr` package. `installr` can also be used to install also 'Rtools', 'RStudio' and 'Git'.
+The most straightforward way to update R on Windows is to use the `installr` package. `installr` can also be used to install also 'Rtools', 'RStudio' and 'Git'.
 
 Keep in mind that it is not recommended to use `installr` from RStudio, so use R instead. Some more details on updating R with `installr` can be found [here](https://www.r-statistics.com/2013/03/updating-r-from-r-on-windows-using-the-installr-package/).
 
