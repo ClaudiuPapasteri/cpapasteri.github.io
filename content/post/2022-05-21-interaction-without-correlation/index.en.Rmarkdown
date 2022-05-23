@@ -363,7 +363,7 @@ gtsummary::tbl_regression(aov_fit) %>%
 <br>
 
 ##### 4) Interaction Plot
-Now, I can see the interaction effect. 
+Now, I can see the interaction effect, clear as day.
 
 ```{r, fig.width = 7, fig.height = 6}
 # Interaction plot
@@ -383,6 +383,11 @@ int_plot1 +
   annotate("rect", xmin = 1.9, xmax = 3, ymin = -.16, ymax = .77, alpha = .2, color = "blue") +
   annotate("text", x = 2.5, y = .22, label = "When B changes \n from 0 to 1,\n y increases\n quite a lot") 
 ```
+
+It's good to mention that the Interaction Plot is typical in ANOVA papers. Focusing on means (or medians) allows the plot to rescale the Oy axis around them, taking the interaction more visible.
+
+Of course, if we plot the actual data point and coerce the Oy axis to take the full scale of the y variable, the interaction in the plot doesn't look so huge anymore. This is the most common way graphs lie about interactions!
+
 
 ```{r}
 int_plot2 <- 
@@ -456,7 +461,7 @@ cond_freq_tab2 %>%
 <br>
 
 ##### 3) Check the ANOVA table
-It is the vanishing interaction effect!
+An interaction effect is created from thin air!
 
 ```{r}
 # Check ANOVA output
@@ -502,7 +507,7 @@ Unfortunately, a blog post cannot familiarize readers with causal inference, the
 
 **Causal interaction** = the joint causal effect of two factors ***E*** and ***Q*** on outcome ***D*** differs from their expected combined effect. Causal interaction is essentially a symmetric concept - both factors have an equal status in the definition of interaction and if manipulation of any is possible it will result in outcome change. 
 
-VanderWeele and Robins (2007) showed that a variable Q could serve as an effect modifier for the effect of E on D even if Q had no causal effect on D. This happens in effect modification by common cause or effect modification by proxy. But more importantly, VanderWeele (2009) gives the following two examples of interaction
+VanderWeele and Robins (2007) showed that a variable Q could serve as an effect modifier for the effect of E on D even if Q had no causal effect on D. This happens in effect modification by common cause or effect modification by proxy. But more importantly, VanderWeele (2009) gives the following two examples: 
 
 <br>
 
@@ -537,6 +542,10 @@ Causal interaction between the effects of E and Q on D without effect modificati
 </figure>
 
 "E denotes a drug in a randomized trial for weight loss for obese children, D denotes the final weight of a child 6 months after the trial completion, X denotes the sugar intake in a child's diet, and Q denotes some measure of exercise. Sugar intake might, for example, affect exercise by making children more hyperactive. Suppose further that the effects of the diet drug E and exercise Q interact. In other words, if we were to intervene to give children the drug and also to force exercise, then the effect of these 2 interventions together, compared with the baseline of no drug and no exercise, would be greater than the sum of the effects of each intervention considered separately. We would then say that there is an interaction between the effects of E and Q on D. However, it does not follow from this that Q is an effect modifier for the effect of E on D. Suppose that sugar intake had 2 effects on weight; first, high levels of sugar intake within the diet will likely increase weight gain; second, sugar intake might give children more energy, making them hyperactive and thus more likely to exercise, and thereby lowering their weight through exercise. It is furthermore possible that the indirect effect of sugar intake that lowers weight through exercise essentially cancels out the direct effect of sugar intake which increases weight" (VanderWeele, 2009).
+
+So, if we were to fit the same types of models we presented until this point using variables D, E and Q, and our primary interest would be the statistical interaction effect (E*Q) on outcome D, we would find that:
+-   in the first example (effect modification without causal interaction) we may find a significant statistical interaction effect (if sample size and effect modification magnitude are large enough), even though there is no causal interaction;
+-   in the second example (causal interaction without effect modification) we won't find a significant statistical interaction effect, even though there really is a causal interaction.  
 
 
 <br>
