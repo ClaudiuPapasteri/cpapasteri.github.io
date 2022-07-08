@@ -26,7 +26,7 @@ projects: []
 
 ### 1) Have a Top Level Domain (TLD)
 
-I have hte TLD `psychlab.eu`, which I bought from Namecheap.
+I have the TLD `psychlab.eu`, which I bought from Namecheap.
 
 You should pay attention to the idiosyncratic renewal procedures and redemption period for these TLDs (.eu ones included) and other gTLDs, as well as special terms and conditions.
 You can find some info about it from Namecheap [here](https://www.namecheap.com/support/knowledgebase/article.aspx/585/2207/how-do-i-renew-expired-cx-de-eu-and-nl-domains/) and [here](https://www.namecheap.com/legal/domains/supplemental-registry-agreement/).
@@ -141,7 +141,7 @@ chmod +x cloudflare.sh                        # to make sure bash script is exec
 
 ### 5) Automate the updating task with Cron Job
 
-We will use `cron` to run the bash script (as root) very 10 minutes.
+We will use `cron` to run the bash script (as root) every 10 minutes.
 
 ```{r, eval=FALSE}
 # dpkg -s cron                                # check if cron is installed, it usually always is
