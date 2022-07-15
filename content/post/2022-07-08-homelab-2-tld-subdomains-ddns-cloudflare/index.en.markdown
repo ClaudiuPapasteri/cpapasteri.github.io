@@ -69,6 +69,16 @@ A wildcard subdomain is represented by an asterisk \<\**.yoursite.com\>.*
 
 ![](cloudflare1.png)
 
+Two additional security settings in Cloudflare that are very useful:
+
+-   Full end-to-end encryption (to activate it in the Cloudflare dashboard go to `SSL/TLS > Overview`)
+
+![](cloudflare2.png)
+
+-   Redirect "http" to "https" (to activate it in the Cloudflare dashboard go to `SSL/TLS > Edge Certificates`)
+
+![](cloudflare3.png)
+
 ### 3) Records pointing to an "outside" domain name (not server IP)
 
 I have a blog deployed by Neflify `cpapasteri.netlify.app`.
