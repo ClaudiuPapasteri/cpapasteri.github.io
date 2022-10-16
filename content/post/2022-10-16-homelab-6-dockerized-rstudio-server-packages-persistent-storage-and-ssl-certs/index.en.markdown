@@ -31,11 +31,13 @@ projects: []
 
 ### Reason
 
-(https://rocker-project.org/images/versioned/rstudio.html)
+R is used together with Docker for Reproducible Research and isolated development environments. Apart from the transparency, portability, extensibility and reusability that Docker provides in these context, having RStudio Server accessible for you in the browser anywhere is awesome. 
+
+My main aim for this post and the next one about Shiny Server is to have at my disposal two services that share some resources but remain separate for ease of maintenance. 
 
 I decided that the Shiny Server should be its separate image, but it will need to access the same user installed package library (library folder). This is where volumes come into play. Also, for easily transferring files (like R projects and scripts) to the container, bind mounts are need to be used.
 
-Finally, this process is made eady by the [Rocker Project]() that offer docker [images for RStudio] Server(https://rocker-project.org/images/versioned/rstudio.html) and a simple way of creating your own images.
+Finally, this process is made easy by the [Rocker Project](https://rocker-project.org/) that offers [docker images for RStudio Server](https://rocker-project.org/images/versioned/rstudio.html) and a simple way of creating your own images.
 
 For R versions >= `4.0.0` you should use the [`rocker-versioned2` images](https://github.com/rocker-org/rocker-versioned2) that are based on Ubuntu LTS.
 
