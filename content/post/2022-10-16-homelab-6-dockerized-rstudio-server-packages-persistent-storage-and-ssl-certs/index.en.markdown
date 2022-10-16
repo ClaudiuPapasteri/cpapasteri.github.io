@@ -190,6 +190,8 @@ If all went well you can access RStudio Server by going to your subdomain (in my
 
 ### 4. Test RStudio Server with persitent storage
 
+![](rstudio_1.png)
+
 Install `renv` package in R:
 
 
