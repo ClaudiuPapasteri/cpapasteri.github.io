@@ -31,17 +31,17 @@ projects: []
 
 ### Reason
 
-R is used together with Docker for Reproducible Research and isolated development environments. Apart from the transparency, portability, extensibility and reusability that Docker provides in these context, having RStudio Server accessible for you in the browser anywhere is awesome. 
+R is used together with Docker for Reproducible Research and isolated development environments. Apart from the transparency, portability, extensibility and reusability that Docker provides in these context, having RStudio Server accessible in the browser from anywhere is awesome. 
 
-My main aim for this post and the next one about Shiny Server is to have at my disposal two services that share some resources but remain separate for ease of maintenance. 
+My main aim for this post, and the next one about Shiny Server, is to have at my disposal two services that share some resources but remain separate for ease of maintenance. 
 
-I decided that the Shiny Server should be its separate image, but it will need to access the same user installed package library (library folder). This is where volumes come into play. Also, for easily transferring files (like R projects and scripts) to the container, bind mounts are need to be used.
+I decided that the Shiny Server should be its separate image, but it will need to access the same user installed package library (library folder). This is where volumes come into play. Also, for easily transferring files (like R projects and scripts) to the container, bind mounts are need.
 
 Finally, this process is made easy by the [Rocker Project](https://rocker-project.org/) that offers [docker images for RStudio Server](https://rocker-project.org/images/versioned/rstudio.html) and a simple way of creating your own images.
 
 For R versions >= `4.0.0` you should use the [`rocker-versioned2` images](https://github.com/rocker-org/rocker-versioned2) that are based on Ubuntu LTS.
 
-To make matters even more simple, these images come prepackaged with important system dependencies and multiple sets of R packages. The images build upon one another by using the [`rocker_scripts`](https://github.com/rocker-org/rocker-versioned2/tree/master/scripts) that come with each image.
+To make matters even simpler, these images come prepackaged with important system dependencies and multiple sets of R packages. The images build upon one another by using the [`rocker_scripts`](https://github.com/rocker-org/rocker-versioned2/tree/master/scripts) that come with each image.
 
 We will use the [`rocker/verse`](https://github.com/rocker-org/rocker-versioned2/blob/master/dockerfiles/verse_devel.Dockerfile) image. This image is large and provides many packages for convenience. For reference, here is the versioned stack from the Rocker Project for the `rocker-versioned2` images:
 
