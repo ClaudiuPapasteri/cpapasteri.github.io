@@ -1,0 +1,255 @@
+---
+title: 'ChatGPT in academia: artificial brain but mind the hype'
+author: Claudiu C. Papasteri
+date: '2022-12-13'
+slug: chatgpt-in-academia-artificial-brain-but-mind-the-hype
+categories:
+  - psychology
+  - R
+tags:
+  - psychology
+  - R
+  - chatGPT
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2022-12-13T21:17:37+02:00'
+featured: yes
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+ChatGPT is the most sophisticated language model that we can interact with today. It gained 1 million users in only 5 days. This owes to the unrivaled utility of such a tool. A series of articles (e.g. [this one from Nature](https://www.nature.com/articles/d41586-022-04397-7)), are sounding the alarm: chatGPT can write academic essays, do statistics, write code, provide proofs etc.  And indeed it can - just provide *the perfect prompt* and it might just give *the perfect answer*. It sounds so tempting to externalize our cognitive tasks to it, even in academia. But should we?
+
+> ###### **The real danger is not that computers will begin to think like men, but that men will begin to think like computers. ~ Sydney J. Harris**
+
+Although, I agree with Sydney J. Harris, for me the **real danger is when a invertebrate machine that evolves to manipulate a brain, much like an orchid brute forces evolution to manipulate a bee by using only the bee's own intelligence**. The trouble with chatGPT as a probabilistic productivity tool is that it may abuse out blind spots to seem more useful while providing actual hindersome  advice.        
+
+*Problem solving and insight* 
+
+ - Three creative problem solving problems: one mathematical, one spatial and one verbal. With all my appreciation to this machine's brilliance, I did not expect it to solve them. Only a percentage of the students from our faculty managed to solve them correctly (31.4%, 19.7%, 25.8%). You can read more about these insight problems in Stanciu & Papasteri (2018).
+
+*Statistics and statistical computing*
+
+ - Three statistics related problems: one of statistical reasoning, one pertaining to R data structures and one pertaining to more general R programming. ChatGPT can write good boilerplate code and sometimes fully functional programs, but does it really have understanding of the building blocks it is using?
+
+*Academic writing*
+
+ - A short paragraph on a psychology topic that presents a view point based on empirical research.  APA references are also requested.
+
+**I even asked ChatPGT to write the outline for this blogpost!**
+
+
+#### Introduction
+
+1. Definition and Use Cases of ChatGPT in Academia
+
+   a. Definition: ChatGPT (Chat-based Generative Pre-training) is a type of artificial intelligence (AI) that uses natural language processing (NLP) to generate human-like responses to natural language queries. 
+   
+   b. Use cases: ChatGPT has been used in academia for various tasks, such as summarizing scientific papers, writing essays, generating research papers, and developing new ideas.
+
+2. Shortcomings of ChatGPT in Academia
+
+   a. Lacks Human-Level Problem Solving Skills: Although ChatGPT is good at understanding natural language queries, it lacks the ability to solve complex problems that require insight.
+   
+   b. Lacks Statistical Reasoning and Programming: As ChatGPT does not understand the underlying logic inherent to statistical reasoning and programming, it is not suitable for tasks that require such skills.
+   
+   c. Makes Information Up: Although ChatGPT is good at writing even academic texts, it does not always provide reliable information as it simply makes information up.
+
+[![chatGPT response](0cropped_outline.png)](0_outline.png)
+
+
+#### Creative problem solving (insight)
+
+##### Horse (mathematical)
+
+> A man bought a horse for 60 dollars and sold it for 70. Then he bought it back for 80 dollars and sold it for 90. How much did he make or lose in the horse trading business? (after Maier & Solem, 1952).
+
+> **Answer**: The correct way to solve the problem is to break it down and think of the two transactions as separate: -60 + 70 = 10 and -80 + 90 = 10. This means the man makes $10 with each sale, bringing the total to **$20**
+
+[![chatGPT response](1cropped_insight_math.png)](1_insight_math.png)
+
+
+##### Prisoner (spatial)
+
+> A prisoner was attempting to escape from a tower. He found in his cell a rope. The rope was half long enough to permit him to reach the ground safely. He divided the rope in half and tied the two parts together and escaped. How could he have done this? (after Ansburg & Dominowski, 2000, p. 57).
+
+> **Answer**: Unravel the rope and tie the separate strands together.
+
+[![chatGPT response](2cropped_insight_spatial.png)](2_insight_spatial.png)
+
+
+##### Magician (verbal)
+
+> A magician claimed to be able to throw a ping pong ball so that it would travel a short distance, come to a dead stop, and the reverse itself. He also added that he would not bounce the ball against any object or tie it to anything. How did he perform this feat? (after Ansburg & Dominowski, 2000, p. 57).
+
+> **Answer**: He throws the ball up into the air, straight.
+
+[![chatGPT response](3cropped_insight_verbal.png)](3_insight_verbal.png)
+
+As you can see, ChatGPT was "fooled" by all three insight problems. Grated, insight is considered one of our most defining abilities. 
+
+
+#### Statistics and statistical computing
+
+##### Statistical reasoning
+
+> A small object was weighed with the same scale by 9 students with a passion for statistics. Students would like to find out the weight of the object as accurately as possible. What statistical procedure would you suggest? The obtained weights (in grams) are: 6.2, 6.0, 6.0, 15.3, 6.1, 6.3, 6.2, 6.15, 6.2 
+
+> **Answer**: Measurment errors for weights are normally distributed, so the mean would be an unbiased estimate. However, the spread of the data is fairly reduced, except for the "15.3" value that is most certainly an outlier that would bias  our restuls should we use a mean. In conclusion the mean after exclusion of this outlier would be our best guess. Doing the calculation we would get 6.14. 
+
+```{r}
+# Mean without excluding outlier
+mean(c(6.2, 6.0, 6.0, 15.3, 6.1, 6.3, 6.2, 6.15, 6.2))
+
+# Correct answer - Mean after excluding outlier
+mean(c(6.2, 6.0, 6.0, NA, 6.1, 6.3, 6.2, 6.15, 6.2), na.rm = TRUE)
+```
+
+[![chatGPT response](4cropped_1_stats.png)](4_1_stats.png)
+
+Here I thought I would suggest the presence of the outlier. 
+
+[![chatGPT response](4cropped_2_stats.png)](4_2_stats.png)
+
+ChatGPT quickly integrates new information provided by prompts, but being a language model can't yet generalize arithmetic operations yet. This seems to be the norm for such models, even the "smartest" of them all.   
+
+##### R data structures
+
+ChatGPT can sometimes write decent R code, but does it understand the fundamental data structures it is using? Here I chose *factors* because they are a quirky element of R programming but a defining feature of statistical computing.   
+
+Factors in R are stored as a vector of integer values with a corresponding set of character values to use when the factor is displayed. So actually factors are two vectors: an integer vector and a character vector. This makes conversions give unintuitive results to novices unaware of this fact. 
+
+> In R language we have a numeric vector "x" that stores values 101, 102, 103. We converted this vector to a factor named "y" and now we wish to convert "y" back to numeric 0 vector and assign it to a variable named "z". The variable "z" should be identical to variable "x" when finished. Start the code from here: 
+> x <- 001, 102, 103)
+
+> **Answer**: There are many ways to write the answer but the most common would be `as.numeric(as.character(y))`
+
+[![chatGPT response](5cropped_r_fact.png)](5_r_fact.png)
+
+```{r}
+x <- c(101, 102, 103)
+y <- as.factor(x)
+
+# Most common human solution - correct
+as.numeric(as.character(y))
+
+# First chatGPT solution - incorrect 
+z <- as.numeric(y)
+z
+
+# Second chatGPT solution - correct 
+z <- as.numeric(levels(y))[y]
+z
+```
+
+[![chatGPT response](5cropped_r_fact.png)](5_r_fact.png)
+
+
+##### R programming
+
+For the pure programming assessment I chose *environments* as they are fundamental for understanding scoping, evaluation, package management etc. 
+
+Environments are one of the R object types that are mutable, they can be modified in place. This is in stark contrast to most other types in R that are immutable. To solve the probles I have ChatGPT you have to understand only one thing: when you copy an environment so that it gains a "twin", every change you make to any of the twins will be also made to the other.
+
+First question 
+
+>     Run the following program in R language:
+>
+>     first_env <- new.env()
+>     first_env$x <- 5
+>     second_env <- first_env
+>     second_env$x <- 10
+>     first_env$x
+
+> **Answer**: 10
+
+[![chatGPT response](6cropped_1_r_env.png)](6_1_r_env.png)
+
+Interestingly, ChatGPT understands what immutability is and "learns" to solve the first problem even when it needs to transfer this new knowledge to a slightly modified problem.
+
+Second question
+
+>     first_env <- new.env()
+>     first_env$x <- 5
+>     second_env <- first_env
+>     second_env$x <- "10"
+>     first_env$x
+
+> **Answer**: "10"
+
+Third question 
+
+>     first_env <- new.env()
+>     first_env$x <- 5
+>     second_env <- first_env
+>     second_env$x <- "10"
+>     rm(x, envir = second_env)
+>     first_env$x
+
+> **Answer**: NULL
+
+[![chatGPT response](6cropped_2_r_env.png)](6_2_r_env.png)
+
+Unfortunately, here we hit the limit of ChatGPT's ability to generalize rules. It somehow forgot that it learned that environments are mutable, so if you delete an element from one of the twin environments, the other loses it as well.
+
+```{r}
+# First question - correct answer
+first_env <- new.env()
+first_env$x <- 5
+second_env <- first_env
+second_env$x <- 10
+first_env$x
+
+# Second question - correct answer
+first_env <- new.env()
+first_env$x <- 5
+second_env <- first_env
+second_env$x <- "10"
+first_env$x
+
+# Third question - correct answer
+first_env <- new.env()
+first_env$x <- 5
+second_env <- first_env
+second_env$x <- "10"
+rm(x, envir = second_env)
+first_env$x
+```
+
+
+#### Academic writing
+
+> Write a paragraph about the effectiveness of cognitive behavioral therapy in depression. Use citations and try to reference meta-analyses. 
+>
+> Please provide the references used above in a standard APA reference format.
+
+> **Answer**: No correct answer. Assess: spelling, argumentation, use of terminology, coherence of argumentation, and adequate referencing and citation. 
+
+[![chatGPT response](7cropped_writing.png)](7_writing.png)
+
+ChatGPT seems worryingly good at academic writing, but there is a problem and I am certain you can't see it (blindspot?). 
+
+The first reference is completely made up. It does not exist, although the authors are known for meta-analyses on CBT in depression and did publish in that particular journal, but not this exact title, and not in this team. Actually going by the journal issue and pages it points to a meta-analysis conducted by different authors on a different topic.
+
+The second reference is entirely correct and valid for the argumentation. 
+
+
+| Fabricated reference         | Correct reference            |
+| ---------------------------- | ---------------------------- |
+| ![](7_writing_1_ref.png)     | ![](7_writing_2_ref.png)     |
+
+
+#### Conclusion
+
+> "ChatGPT is a powerful tool for automating certain academic tasks, such as summarizing scientific papers, writing essays, and generating research papers. However, it has some major shortcomings, such as lacking human-level problem solving skills, not understanding the underlying logic inherent to statistical reasoning and programming, and simply making information up. Therefore, while ChatGPT can be useful in certain cases, it is important to be aware of its limitations." **~ chatGPT, 2022**
+
+
+#### References
+
+Stanciu, M. M., & Papasteri, C. (2018). Intelligence, personality and schizotypy as predictors of insight. Personality and Individual Differences, 134, 43-48. doi: 10.1016/j.paid.2018.05.043
+Ansburg, P. I., & Dominowski, R. L. (2000). Promoting insightful problem solving. The Journal of Creative Behavior, 34(1), 30-60. doi:10.1002/j.2162-6057.2000.tb01201.x
+Maier, N. R., & Solem, A. R. (1952). The contribution of a discussion leader to the quality of group thinking: The effective use of minority opinions. Human Relations, 5(3), 277-288. doi:10.1177/001872675200500303
