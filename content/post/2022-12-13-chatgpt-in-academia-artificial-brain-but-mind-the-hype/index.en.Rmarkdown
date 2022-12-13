@@ -43,6 +43,7 @@ Although, I agree with Sydney J. Harris, for me the **real danger is when a inve
 **I even asked ChatPGT to write the outline for this blogpost!**
 
 
+&nbsp;
 #### Introduction
 
 1. Definition and Use Cases of ChatGPT in Academia
@@ -62,6 +63,7 @@ Although, I agree with Sydney J. Harris, for me the **real danger is when a inve
 [![chatGPT response](0cropped_outline.png)](0_outline.png)
 
 
+&nbsp;
 #### Creative problem solving (insight)
 
 ##### Horse (mathematical)
@@ -93,6 +95,7 @@ Although, I agree with Sydney J. Harris, for me the **real danger is when a inve
 As you can see, ChatGPT was "fooled" by all three insight problems. Grated, insight is considered one of our most defining abilities. 
 
 
+&nbsp;
 #### Statistics and statistical computing
 
 ##### Statistical reasoning
@@ -221,6 +224,7 @@ first_env$x
 ```
 
 
+&nbsp;
 #### Academic writing
 
 > Write a paragraph about the effectiveness of cognitive behavioral therapy in depression. Use citations and try to reference meta-analyses. 
@@ -243,11 +247,13 @@ The second reference is entirely correct and valid for the argumentation.
 | ![](7_writing_1_ref.png)     | ![](7_writing_2_ref.png)     |
 
 
+&nbsp;
 #### Conclusion
 
 > "ChatGPT is a powerful tool for automating certain academic tasks, such as summarizing scientific papers, writing essays, and generating research papers. However, it has some major shortcomings, such as lacking human-level problem solving skills, not understanding the underlying logic inherent to statistical reasoning and programming, and simply making information up. Therefore, while ChatGPT can be useful in certain cases, it is important to be aware of its limitations." **~ chatGPT, 2022**
 
 
+&nbsp;
 #### References
 
 Stanciu, M. M., & Papasteri, C. (2018). Intelligence, personality and schizotypy as predictors of insight. Personality and Individual Differences, 134, 43-48. doi: 10.1016/j.paid.2018.05.043
