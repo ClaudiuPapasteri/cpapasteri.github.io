@@ -26,7 +26,7 @@ ChatGPT is the most sophisticated language model that we can interact with today
 
 > ###### **The real danger is not that computers will begin to think like men, but that men will begin to think like computers. ~ Sydney J. Harris**
 
-Although, I agree with Sydney J. Harris, for me the **real danger is when a invertebrate machine that evolves to manipulate a brain, much like an orchid brute forces evolution to manipulate a bee by using only the bee's own intelligence**. The trouble with chatGPT as a probabilistic productivity tool is that it may abuse out blind spots to seem more useful while providing actual hindersome  advice.        
+Although, I agree with Sydney J. Harris, for me the **real danger is when an invertebrate machine evolves to manipulate a brain, much like an orchid brute forces evolution to manipulate a bee by using only the bee's own nervous system to do it**. The trouble with chatGPT as a probabilistic productivity tool is that it may abuse out blind spots to seem more useful while providing actual hindersome  advice.  To test ChatGPT, I used the following tasks:      
 
 *Problem solving and insight* 
 
@@ -40,7 +40,7 @@ Although, I agree with Sydney J. Harris, for me the **real danger is when a inve
 
  - A short paragraph on a psychology topic that presents a view point based on empirical research.  APA references are also requested.
 
-**I even asked ChatPGT to write the outline for this blogpost!**
+**I even asked ChatPGT to write the outline for this blog post!**
 
 
 &nbsp;
@@ -135,7 +135,7 @@ ChatGPT quickly integrates new information provided by prompts, but being a lang
 
 ChatGPT can sometimes write decent R code, but does it understand the fundamental data structures it is using? Here I chose *factors* because they are a quirky element of R programming but a defining feature of statistical computing.   
 
-Factors in R are stored as a vector of integer values with a corresponding set of character values to use when the factor is displayed. So actually factors are two vectors: an integer vector and a character vector. This makes conversions give unintuitive results to novices unaware of this fact. 
+Factors in R are stored as a vector of integer values with a corresponding set of character values to use when the factor is displayed. So actually factors are made from two atomic vectors: an integer vector and a character vector. This makes conversions give unintuitive results to novices unaware of this fact. 
 
 > In R language we have a numeric vector "x" that stores values 101, 102, 103. We converted this vector to a factor named "y" and now we wish to convert "y" back to numeric 0 vector and assign it to a variable named "z". The variable "z" should be identical to variable "x" when finished. Start the code from here: 
 > x <- 001, 102, 103)
@@ -184,7 +184,7 @@ z
 
 For the pure programming assessment I chose *environments* as they are fundamental for understanding scoping, evaluation, package management etc. 
 
-Environments are one of the R object types that are mutable, they can be modified in place. This is in stark contrast to most other types in R that are immutable. To solve the probles I have ChatGPT you have to understand only one thing: when you copy an environment so that it gains a "twin", every change you make to any of the twins will be also made to the other.
+Environments are one of the R object types that are mutable, they can be modified in place. This is in stark contrast to most other types in R that are immutable. To solve the problem I gave ChatGPT you have to understand only one thing: when you copy an environment so that it gains a "twin", every change you make to any of the twins will also happen to the other twin.
 
 First question 
 
@@ -280,7 +280,7 @@ first_env$x
 
 [![chatGPT response](7cropped_writing.png)](7_writing.png)
 
-ChatGPT seems worryingly good at academic writing, but there is a problem and I am certain you can't see it (blindspot?). 
+ChatGPT seems worryingly good at academic writing, but there is a problem and I am certain you can't see it (blind spot?). 
 
 The first reference is completely made up. It does not exist, although the authors are known for meta-analyses on CBT in depression and did publish in that particular journal, but not this exact title, and not in this team. Actually going by the journal issue and pages it points to a meta-analysis conducted by different authors on a different topic.
 
