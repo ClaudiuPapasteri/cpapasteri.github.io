@@ -22,11 +22,11 @@ image:
 projects: []
 ---
 
-ChatGPT is the most sophisticated language model that we can interact with today. It gained 1 million users in only 5 days. This owes to the unrivaled utility of such a tool. A series of articles (e.g. [this one from Nature](https://www.nature.com/articles/d41586-022-04397-7)), are sounding the alarm: chatGPT can write academic essays, do statistics, write code, provide proofs etc.  And indeed it can - just provide *the perfect prompt* and it might just give *the perfect answer*. It sounds so tempting to externalize our cognitive tasks to it, even in academia. But should we?
+ChatGPT is the most sophisticated language model that we can interact with today. It gained 1 million users in only 5 days. This owes to the unrivaled utility of such a tool. A series of articles (e.g. [this one from Nature](https://www.nature.com/articles/d41586-022-04397-7)) are sounding the alarm: ChatGPT can write academic essays, do statistics, write code, provide proofs etc.  And indeed it can - just provide *the perfect prompt* and it might just give *the perfect answer* (prompt engineering is probably going to be one of the important transversal skills in the proximate future). It sounds so tempting to externalize our cognitive tasks to it, even in academia. But should we?
 
 > ###### **The real danger is not that computers will begin to think like men, but that men will begin to think like computers. ~ Sydney J. Harris**
 
-Although, I agree with Sydney J. Harris, for me the **real danger is when an invertebrate machine evolves to manipulate a brain, much like an orchid brute forces evolution to manipulate a bee by using only the bee's own nervous system to do it**. The trouble with chatGPT as a probabilistic productivity tool is that it may abuse out blind spots to seem more useful while providing actual hindersome  advice.  To test ChatGPT, I used the following tasks:      
+Although, I agree with Sydney J. Harris, for me the **real danger is when an invertebrate machine evolves to manipulate a brain, much like an orchid brute forces evolution to manipulate a bee by using only the bee's own nervous system to do it**. The trouble with ChatGPT as a probabilistic productivity tool is that it may abuse out blind spots to seem more useful while providing actual hindersome  advice.  To test ChatGPT, I used the following tasks:      
 
 *Problem solving and insight* 
 
@@ -60,7 +60,7 @@ Although, I agree with Sydney J. Harris, for me the **real danger is when an inv
    
    c. Makes Information Up: Although ChatGPT is good at writing even academic texts, it does not always provide reliable information as it simply makes information up.
 
-[![chatGPT response](0cropped_outline.png)](0_outline.png)
+[![ChatGPT response](0cropped_outline.png)](0_outline.png)
 
 
 &nbsp;
@@ -72,7 +72,7 @@ Although, I agree with Sydney J. Harris, for me the **real danger is when an inv
 
 > **Answer**: The correct way to solve the problem is to break it down and think of the two transactions as separate: -60 + 70 = 10 and -80 + 90 = 10. This means the man makes $10 with each sale, bringing the total to **$20**
 
-[![chatGPT response](1cropped_insight_math.png)](1_insight_math.png)
+[![ChatGPT response](1cropped_insight_math.png)](1_insight_math.png)
 
 
 ##### Prisoner (spatial)
@@ -81,7 +81,7 @@ Although, I agree with Sydney J. Harris, for me the **real danger is when an inv
 
 > **Answer**: Unravel the rope and tie the separate strands together.
 
-[![chatGPT response](2cropped_insight_spatial.png)](2_insight_spatial.png)
+[![ChatGPT response](2cropped_insight_spatial.png)](2_insight_spatial.png)
 
 
 ##### Magician (verbal)
@@ -90,7 +90,7 @@ Although, I agree with Sydney J. Harris, for me the **real danger is when an inv
 
 > **Answer**: He throws the ball up into the air, straight.
 
-[![chatGPT response](3cropped_insight_verbal.png)](3_insight_verbal.png)
+[![ChatGPT response](3cropped_insight_verbal.png)](3_insight_verbal.png)
 
 As you can see, ChatGPT was "fooled" by all three insight problems. Grated, insight is considered one of our most defining abilities. 
 
@@ -123,11 +123,11 @@ mean(c(6.2, 6.0, 6.0, NA, 6.1, 6.3, 6.2, 6.15, 6.2), na.rm = TRUE)
 ## [1] 6.14375
 ```
 
-[![chatGPT response](4cropped_1_stats.png)](4_1_stats.png)
+[![ChatGPT response](4cropped_1_stats.png)](4_1_stats.png)
 
 Here I thought I would suggest the presence of the outlier. 
 
-[![chatGPT response](4cropped_2_stats.png)](4_2_stats.png)
+[![ChatGPT response](4cropped_2_stats.png)](4_2_stats.png)
 
 ChatGPT quickly integrates new information provided by prompts, but being a language model can't yet generalize arithmetic operations yet. This seems to be the norm for such models, even the "smartest" of them all.   
 
@@ -142,7 +142,7 @@ Factors in R are stored as a vector of integer values with a corresponding set o
 
 > **Answer**: There are many ways to write the answer but the most common would be `as.numeric(as.character(y))`
 
-[![chatGPT response](5cropped_r_fact.png)](5_r_fact.png)
+[![ChatGPT response](5cropped_r_fact.png)](5_r_fact.png)
 
 
 ```r
@@ -158,7 +158,7 @@ as.numeric(as.character(y))
 ```
 
 ```r
-# First chatGPT solution - incorrect 
+# First ChatGPT solution - incorrect 
 z <- as.numeric(y)
 z
 ```
@@ -168,7 +168,7 @@ z
 ```
 
 ```r
-# Second chatGPT solution - correct 
+# Second ChatGPT solution - correct 
 z <- as.numeric(levels(y))[y]
 z
 ```
@@ -177,7 +177,7 @@ z
 ## [1] 101 102 103
 ```
 
-[![chatGPT response](5cropped_r_fact.png)](5_r_fact.png)
+[![ChatGPT response](5cropped_r_fact.png)](5_r_fact.png)
 
 
 ##### R programming
@@ -198,7 +198,7 @@ First question
 
 > **Answer**: 10
 
-[![chatGPT response](6cropped_1_r_env.png)](6_1_r_env.png)
+[![ChatGPT response](6cropped_1_r_env.png)](6_1_r_env.png)
 
 Interestingly, ChatGPT understands what immutability is and "learns" to solve the first problem even when it needs to transfer this new knowledge to a slightly modified problem.
 
@@ -223,7 +223,7 @@ Third question
 
 > **Answer**: NULL
 
-[![chatGPT response](6cropped_2_r_env.png)](6_2_r_env.png)
+[![ChatGPT response](6cropped_2_r_env.png)](6_2_r_env.png)
 
 Unfortunately, here we hit the limit of ChatGPT's ability to generalize rules. It somehow forgot that it learned that environments are mutable, so if you delete an element from one of the twin environments, the other loses it as well.
 
@@ -278,7 +278,7 @@ first_env$x
 
 > **Answer**: No correct answer. Assess: spelling, argumentation, use of terminology, coherence of argumentation, and adequate referencing and citation. 
 
-[![chatGPT response](7cropped_writing.png)](7_writing.png)
+[![ChatGPT response](7cropped_writing.png)](7_writing.png)
 
 ChatGPT seems worryingly good at academic writing, but there is a problem and I am certain you can't see it (blind spot?). 
 
