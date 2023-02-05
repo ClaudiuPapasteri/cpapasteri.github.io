@@ -30,7 +30,9 @@ design:
 <!-- &ensp; -->
 &ensp;
 
-I blog about the things I learn or experiment with, mainly psychology and R related topics.
+I blog about the things I learn or experiment with, mainly psychology and technology related topics.
+
+Many of my posts focus on statistics and the R language, adhering to https://www.r-bloggers.com guidelines. 
 
 I will also periodically post course materials for subjects I teach at the University.
 
