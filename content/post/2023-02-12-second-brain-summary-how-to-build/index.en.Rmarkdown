@@ -31,7 +31,7 @@ blogdown::build_site(build_rmd = "E:/Github/cpapasteri.github.io/content/post/20
 
 ### Reason
 
-Working on many projects at the same time is stimulating and fulfilling and confusing and frustrating. On some days, my attention and working memory can only do so much. More disparaging, considering myself somewhat tech-savvy, the last couple of years felt that the Digital Realm was as much as a friend as it was a foe. Beyond acknowledging some missuses, my focused attention at the whim of *seemingly* finite will-power (yes, yes, *ego-depletion* is the wrong way to view it, but it feels that way), my short-term memory overflows and my habits will always be lacking without an **intelligent scaffolding**.
+Working on many projects at the same time is stimulating and fulfilling and confusing and frustrating. Some days, my attention and working memory can only do so much. More disparaging, considering myself somewhat tech-savvy, the last couple of years felt that the Digital Realm was as much a friend as it was a foe. Beyond acknowledging some missuses, my focused attention at the whim of *seemingly* finite will-power (yes, yes, *ego-depletion* is the wrong way to view it, but it feels that way), my short-term memory overflows and my habits will always be lacking without an **intelligent scaffolding**.
 
 The Second Brain aims to be such a scaffolding that aims to:
 
@@ -51,21 +51,21 @@ This **first post** will introduce a **distilled understanding of what Second Br
 
 The Second Brain is a Personal/Private Knowledge Management System (#PKM) for our Digital Realm.
 
-It aims facilitate:
+It aims to facilitate:
 
 1.  Making our ideas **concrete**.
 2.  Revealing new **associations** between ideas.
 3.  **Incubating** our ideas over time.
 4.  Sharpening our unique **perspectives**.
 
-For me, the most salient features that inspired me to invest in this project are that the Second Brain for me is:
+What inspired me to invest in this project is that the Second Brain for me is:
 
 -   a kind of *extended mind framework* that standardizes the way we work through both **mindset** and **toolset** (#toolsforthought);
 -   a combination of inner discipline habits of maintenance/organizing *during* the work process, scaffolded by outer discipline of structure and standardization;
 -   a dynamic, flexible system and set of habits to continually access what we need without cluttering our digital environment and our mind, while keeping cognitive load at minimum;
 -   both technology-aided and human intentional retrieval of information with the purpose to **"recycle" knowledge** and **get things done**.
 
-Tiago Forte (2022) promises that using a Second Brain system will teach you how to:
+Tiago Forte (2022) promises that using a Second Brain system will teach you to:
 
 1.  Find anything you've learned, touched, or thought about in the past within seconds.
 2.  Organize your knowledge and use it to move your projects and goals forward more consistently.
