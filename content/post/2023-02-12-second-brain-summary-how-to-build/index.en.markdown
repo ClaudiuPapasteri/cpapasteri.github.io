@@ -31,7 +31,7 @@ blogdown::build_site(build_rmd = "E:/Github/cpapasteri.github.io/content/post/20
 
 ### Reason
 
-Working on many projects at the same time is stimulating and fulfilling and confusing and frustrating. Some days, my attention and working memory can only do so much. More disparaging, considering myself somewhat tech-savvy, the last couple of years felt that the Digital Realm was as much a friend as it was a foe. Beyond acknowledging some missuses, my focused attention at the whim of *seemingly* finite will-power (yes, yes, *ego-depletion* is the wrong way to view it, but it feels that way), my short-term memory overflows and my habits will always be lacking without an **intelligent scaffolding**.
+Working on many projects at the same time is stimulating and fulfilling and confusing and frustrating. Some days, my attention and working memory can only do so much. More disparaging, considering myself somewhat tech-savvy, the last couple of years felt that the Digital Realm was as much a friend as it was a foe. Beyond acknowledging some missuses, my focused attention is at the whim of *seemingly* finite will-power (yes, yes, *ego-depletion* is the wrong way to view it, but it feels that way), my short-term memory overflows and my habits will always be lacking without an **intelligent scaffolding**.
 
 The Second Brain aims to be such a scaffolding that aims to:
 
