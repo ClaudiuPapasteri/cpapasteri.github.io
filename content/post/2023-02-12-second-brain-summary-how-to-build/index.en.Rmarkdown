@@ -13,6 +13,9 @@ tags:
   - psychology
   - creativity
   - productivity
+  - toolsforthought
+  - FileBrowser
+  - Trilium
 subtitle: ''
 summary: ''
 authors: []
@@ -185,6 +188,7 @@ I use the **CODE** Method for both File System on Cloud and Notes in Notes App(s
 ##### My setup
 
 As Turing said "**No, I'm not interested in developing a powerful brain. All I'm after is just a mediocre brain, something like the President of the American Telephone and Telegraph Company**". I don't know how *powerful* the brain of the President of the American Telephone and Telegraph Company was but **cheap and easily maintainable** probably were also other unmet criteria, although they were the primary ones for my Second Brain. 
+
 My second brain consists of the following **hardware**: 
 
 -   Raspberry Pi (I am going with 3B+ but 4 is even better; I installed some radiators and a 5v fan on it)
