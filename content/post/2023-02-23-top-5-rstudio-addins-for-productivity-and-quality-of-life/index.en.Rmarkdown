@@ -30,13 +30,15 @@ blogdown::build_site(build_rmd = "E:/Github/cpapasteri.github.io/content/post/20
 
 ### Introduction
 
-RStudio Addins let you execute a bit of R code or a Shiny app through the RStudio IDE, either via the Addins dropdown menu or with a
+RStudio Addins let you execute a bit of R code or a Shiny app through the RStudio IDE, either via the Addins drop-down menu or with a
 keyboard shortcut.
 
 [Addin list](https://github.com/daattali/addinslist) and corresponding [`addinslist`](https://github.com/daattali/addinslist) package let
 you "browse RStudio addins".
 
 This is a list of my top 5 favorite Addins and several very relevant mentions.
+
+ 
 
 ### Top 5
 
@@ -57,8 +59,14 @@ Sys.setenv(OPENAI_API_KEY = "<APIKEY>")    #  OpenAI API key
 
 The addin works on text selection:
 
-**"Spelling and Grammar"** ![](gptstudio_spelling.gif) **"Comment your code"** ![](gptstudio_commentcode.gif) **"Write/Code from prompt"**  
+**"Spelling and Grammar"** 
+![](gptstudio_spelling.gif) 
+**"Comment your code"** 
+![](gptstudio_commentcode.gif) 
+**"Write/Code from prompt"**  
 ![](gptstudio_promptcode.gif)
+
+ 
 
 #### 2. Static code analysis (linting) and code styling
 
@@ -68,7 +76,6 @@ In order to show the "Markers" pane in RStudio: Menu "Tools" -\> "Global Options
 window: click "Code" on the left; click "Diagnostics" tab; check "Show diagnostics for R".
 
 **"Lint current file"**
-
 ![](lintr.gif)
 
 `lintr` is complementary to the `styler` package which automatically restyles code, eliminating some of the problems that `lintr` can
@@ -82,6 +89,8 @@ detect.
 
 Beyond addin use, `lintr` and `styler` are excellent at R project level, coupled with `precommit` package. Read more about this workflow [on
 this r-bloggers post](https://www.r-bloggers.com/2022/09/enforcing-style-in-an-r-project/).
+
+ 
 
 #### 3. Search R packages on CRAN
 
@@ -98,20 +107,22 @@ install.packages("whoami")
 ```
 
 **"CRANsearcher"** / **"CRAN Package Search"**
-
 ![](CRANsearcher_pkgsearch.gif)
+
+ 
 
 #### 4. Reproducible examples with [`datapasta`](https://milesmcbain.github.io/datapasta/) & [`reprex`](https://reprex.tidyverse.org/)
 
-E.g. use `datapasta::tribble_paste()` from .xlsx to R tibble and then reprex::reprex({code goes here}, venue = "so") to make a reproducible
+E.g. use `datapasta::tribble_paste()` from .xlsx to R tibble and then `reprex::reprex({code goes here}, venue = "so")` to make a reproducible
 example in a separate environment, copy output to clipboard and then just paste it to StackOverflow. The same steps can be achieved through
 addins:
 
 **"Paste as tibble"** + **"Reprex selection"**
-
 ![](datapasta_w_reprex_sheet_to_tribble.gif)
 
-#### 5. [`caseconverter`](https://github.com/strboul/caseconverter)
+ 
+
+#### 5. [`caseconverter`](https://github.com/strboul/caseconverter) for name conversions
 
 ```{r, eval=FALSE}
 if (!require(remotes))
@@ -120,7 +131,6 @@ remotes::install_github("strboul/caseconverter")
 ```
 
 **"To upper case"** / **"To lower case"** / **"To snake case"**
-
 ![](caseconverter.gif)
 
  
