@@ -36,7 +36,7 @@ blogdown::build_site(build_rmd = "E:/Github/cpapasteri.github.io/content/post/20
 
 You would like to do a systematic search of the scientific literature on a given topic. But a wild caveat appears - your familiarity (or lack there of) with the topic will bias your search, while your field lacks in standardized terminology and is fragmented into multiple nomenclature clusters.
 
-Grames et al. (2019) devised a method (you can read the article [here](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.13268)). A gentle introduction to both R and `litsearchr` package can be found on [Library Carpentry](https://carpentries-incubator.github.io/lc-litsearchr/).  
+Grames et al. (2019) devised a method to address this (you can read the article [here](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.13268)). A gentle introduction to both R and `litsearchr` package that trivializes the analyses can be found on [Library Carpentry](https://carpentries-incubator.github.io/lc-litsearchr/).  
 
 Simply put we can *cast a wide net* using a *naïve* search, retrieve relevant information from data bases (e.g., titles, keywords, abstracts) and analyse this interlinked text data to derive a systematic search strategy. I view it as way to bootstrap knowledge.  
 
@@ -183,7 +183,7 @@ pm_df |>
 
  
 
-#### 3. Extract terms from scraped data
+#### 3. Extract terms from retrieved data
 
 Within `extract_terms()` use `method = "tagged"` if keywords are provided. For extracting *interesting* words out of titles use the Rapid Automatic Keyword Extraction (RAKE) algorithm, coupled with a good stop word collection.
 
