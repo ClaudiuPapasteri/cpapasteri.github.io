@@ -41,13 +41,13 @@ Grames et al. (2019) devised a method (you can read the article [here](https://b
 Simply put we can *cast a wide net* using a *naïve* search, retrieve relevant information from data bases (e.g., titles, keywords, abstracts) and analyse this interlinked text data to derive a systematic search strategy. I view it as way to bootstrap knowledge.  
 
 ![](featured.png)
-<div style="text-align:center"><i>Representation of the litsearchr workflow (Grames et al., 2019) adapted by me for automated data base quarying*</i></div>
+<div style="text-align:center"><i>Representation of the litsearchr workflow (Grames et al., 2019) adapted by me for automated data base querying</i></div>
 
  
 
-We will use: 
+We will use the following packages: 
 
--  [`easyPubMed`](https://www.data-pulse.com/dev_site/easypubmed/) package that simplifies the use of the PubMed API to query and extract article data.
+-  [`easyPubMed`](https://www.data-pulse.com/dev_site/easypubmed/) that simplifies the use of the PubMed API to query and extract article data.
 -  [`litsearchr`](https://elizagrames.github.io/litsearchr) for automated approach to identifying search terms for systematic reviews using keyword co-occurrence networks.
 -  [`stopwords`](https://cran.r-project.org/web/packages/stopwords/readme/README.html) for the Stopwords ISO Dataset which is the most comprehensive collection of stopwords for multiple languages. 
 -  [`igraph`](https://igraph.org/r/) for network analyses (this package is already a dependence of `litsearchr` but there are still many useful functions that are not wrapped by `litsearchr` functions). 
