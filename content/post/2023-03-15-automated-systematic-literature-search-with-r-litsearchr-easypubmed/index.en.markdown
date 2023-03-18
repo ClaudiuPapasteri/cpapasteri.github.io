@@ -377,7 +377,7 @@ We see that some term groupings are obvious: type of study (design), type of int
 
  
 
-#### 5. Manual grouping into clusters
+#### 6. Manual grouping into clusters
 
 
 ```r
@@ -401,7 +401,7 @@ pm_gruped_selected_terms <- list(
 
  
 
-#### 6. Automatically write the search string
+#### 7. Automatically write the search string
 
 
 ```r

@@ -1,0 +1,237 @@
+---
+title: Automated systematic literature search using R, litsearchr, and Google Scholar
+  web scraping
+author: Claudiu C. Papasteri
+date: '2023-03-18'
+slug: automated-systematic-literature-search-with-r-google-scholar-web-scraping
+categories:
+  - R
+  - metaverse
+  - meta-analysis
+  - webscraping
+tags:
+  - R
+  - metaverse
+  - meta-analysis
+  - webscraping
+  - litsearchr
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2023-03-18T15:27:19+02:00'
+featured: yes
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: yes
+projects: []
+---
+
+<!--
+blogdown::build_site(build_rmd = "E:/Github/cpapasteri.github.io/content/post/2023-03-18-automated-systematic-literature-search-with-r-google-scholar-web-scraping/index.en.Rmarkdown")
+-->
+
+### Introduction
+
+You would like to do a systematic search of the scientific literature on a given topic. But a wild caveat appears - your familiarity (or lack there of) with the topic will bias your search, while your field lacks in standardized terminology and is fragmented into multiple nomenclature clusters.
+
+Grames et al. (2019) devised a method to address this (you can read the article [here](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.13268)). A gentle introduction to both R and `litsearchr` package that trivializes the analyses can be found on [Library Carpentry](https://carpentries-incubator.github.io/lc-litsearchr/).  
+
+Simply put we can *cast a wide net* using a *naïve* search, retrieve relevant information from data bases (e.g., titles, keywords, abstracts) and analyse this interlinked text data to derive a systematic search strategy. I view it as way to bootstrap knowledge.  
+
+-  my Scholar Google search web scraping function to **quickly** extract a lot of literature info based on an preliminary *naïve* search query. 
+
+<div style="text-align:center"><i>Representation of the litsearchr workflow (Grames et al., 2019) adapted by me for automated data base querying</i></div>
+
+ 
+
+We will use the following packages: 
+
+-  [`easyPubMed`](https://www.data-pulse.com/dev_site/easypubmed/) that simplifies the use of the PubMed API to query and extract article data.
+-  [`litsearchr`](https://elizagrames.github.io/litsearchr) for automated approach to identifying search terms for systematic reviews using keyword co-occurrence networks.
+-  [`stopwords`](https://cran.r-project.org/web/packages/stopwords/readme/README.html) for the Stopwords ISO Dataset which is the most comprehensive collection of stopwords for multiple languages. 
+-  [`igraph`](https://igraph.org/r/) for network analyses (this package is already a dependence of `litsearchr` but there are still many useful functions that are not wrapped by `litsearchr` functions). 
+-  `ggplot2`, `ggraph`, and `ggrepel` for plotting. 
+
+ 
+
+#### 1. Load or install packages
+
+```{r, results=FALSE, message=FALSE, warning=FALSE}
+# litsearchr isn't yet on CRAN, need to install from github
+if (require(litsearchr)) remotes::install_github("elizagrames/litsearchr", ref = "main")
+
+# Packages to load/install
+packages <- c(
+  "easyPubMed",
+  "litsearchr", "stopwords", "igraph", 
+  "ggplot2", "ggraph", "ggrepel"
+)
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+# Load packages
+lapply(packages, library, character.only = TRUE)
+```
+
+ 
+
+#### 2. Run the web scraping function
+
+<script src="https://gist.github.com/ClaudiuPapasteri/7bef34394c395e03ee074f884ddbf4d4.js"></script>
+
+```{r, cache=TRUE}
+# Scrape Scholar Google
+devtools::source_gist("https://gist.github.com/ClaudiuPapasteri/7bef34394c395e03ee074f884ddbf4d4")
+gs_df <- scrape_gs(query = 'intext:"psychotherapy" AND "PTSD"', pages = 1:100)
+```
+
+Check the first 10 entries:
+
+```{r, cache=TRUE, message=FALSE, warning=FALSE}
+# See results
+head(gs_df)
+```
+
+ 
+
+#### 3. Extract terms from scraped data
+
+To extract *interesting* words out of titles use the Rapid Automatic Keyword Extraction (RAKE) algorithm, coupled with a good stop word collection.
+
+```{r}
+# Extract terms from from title 
+gs_terms <- litsearchr::extract_terms(text = gs_df[,"title"], 
+                                      method = "fakerake", min_freq = 3, min_n = 2,
+                                      stopwords = stopwords::data_stopwords_stopwordsiso$en)
+```
+
+ 
+
+#### 4. Create Co-Occurrence Network
+
+We will consider the title and abstract of each article to represent the article's "content" and we will consider a term to have appeared in the article if it appears in either the title or abstract. Based on this we will create the document-feature matrix, where the "documents" are our articles (title and abstract) and the "features" are the search terms. The Co-Occurrence Network is computed using this document-feature matrix. 
+
+```{r, cache=TRUE, message=FALSE, warning=FALSE}
+# Create Co-Occurrence Network
+gs_docs <- paste(gs_df[, "title"], gs_df[, "abstract"]) # we will consider title and abstract of each article to represent the article's "content"
+gs_dfm <- litsearchr::create_dfm(elements = gs_docs, features = gs_terms) # document-feature matrix
+gs_coocnet <- litsearchr::create_network(gs_dfm, min_studies = 3)
+
+ggraph(gs_coocnet, layout = "stress") +
+  coord_fixed() +
+  expand_limits(x = c(-3, 3)) +
+  geom_edge_link(aes(alpha = weight)) +
+  geom_node_point(shape = "circle filled", fill = "white") +
+  geom_node_text(aes(label = name), hjust = "outward", check_overlap = TRUE) +
+  guides(edge_alpha = "none") +
+  theme_void()
+```
+
+
+
+#### 5. Prune the Network based on node strength
+
+##### 5.1 Compute node strength
+
+Node strength in a network is calculated by summing up the weights of all edges connected to the respective node.Thus, node strength investigates how strongly it is directly connected to other nodes in the network.
+
+```{r, cache=TRUE, message=FALSE, warning=FALSE}
+# Prune the Network based on node strength
+gs_node_strength <- igraph::strength(gs_coocnet)
+gs_node_rankstrenght <- data.frame(term = names(gs_node_strength), strength = gs_node_strength, row.names = NULL)
+gs_node_rankstrenght$rank <- rank(gs_node_rankstrenght$strength, ties.method = "min")
+gs_node_rankstrenght <- gs_node_rankstrenght[order(gs_node_rankstrenght$rank),]
+
+gs_plot_strenght <- 
+  ggplot(gs_node_rankstrenght, aes(x = rank, y = strength, label = term)) +
+  geom_line(lwd = 0.8) +
+  geom_point() +
+  ggrepel::geom_text_repel(size = 3, hjust = "right", nudge_y = 3, max.overlaps = 30) +
+  theme_bw()
+gs_plot_strenght
+```
+
+##### 5.1 Prune based on chosen criteria
+
+We want to keep only those nodes that have high strength, but how will we decide how many to prune out? `litsearchr::find_cutoff()` provides us with two ways to decide: cumulative cutoff and change points. The cumulative cutoff method simply retains a certain proportion of the total strength. The change points method uses `changepoint::cpt.mean()` under the hood to calculate optimal cutoff positions where the trend in strength shows sharp changes. 
+
+Again, we will use the heuristic *when in doubt, pool results together*, i.e. we will use the change point nearest the to the cumulative cutoff value we set. 
+
+```{r, cache=TRUE, message=FALSE, warning=FALSE}
+# Cumulatively - retain a certain proportion (e.g. 80%) of the total strength of the network of search terms
+gs_cutoff_cum <- litsearchr::find_cutoff(gs_coocnet, method = "cumulative", percent = 0.8)
+# Changepoints - certain points along the ranking of terms where the strength of the next strongest term is much greater than that of the previous one
+gs_cutoff_change <- litsearchr::find_cutoff(gs_coocnet, method = "changepoint", knot_num = 3)
+
+gs_plot_strenght +
+  geom_hline(yintercept = gs_cutoff_cum, color = "red", lwd = 0.7, linetype = "longdash", alpha = 0.6) +
+  geom_hline(yintercept = gs_cutoff_change, color = "orange", lwd = 0.7, linetype = "dashed", alpha = 0.6)
+
+gs_cutoff_crit <- gs_cutoff_change[which.min(abs(gs_cutoff_change - gs_cutoff_cum))]  # e.g. nearest cutpoint to cumulative criterion (cumulative produces one value, changepoints may be many)
+
+gs_selected_terms <- litsearchr::get_keywords(litsearchr::reduce_graph(gs_coocnet, gs_cutoff_crit))
+```
+
+Inspect selected terms:
+  
+  ```{r}
+gs_selected_terms
+```
+
+We see that some term groupings are obvious: type of study (design), type of intervention, disorder/symptoms, and population. We are not interested in a particular population, so we will exclude terms like "child", "adult", "aged", "veterans". We will also exclude terms that are good candidates for these groups but are too wide for our scope: "mental health" is too wide for disorder/symptoms, while "psychological" and "treatment" are too wide for type of intervention. Afterwards we will manually define groupings for the rest of the terms.
+
+
+
+#### 5. Manual grouping into clusters
+
+```{r}
+gs_selected_terms <- gs_selected_terms[-c(18, 19, 20, 32, 22, 25, 30)] # exclude terms
+
+# Manual grouping into clusters - for more rigorous search we will need a combination of OR and AND operators
+design <- gs_selected_terms[c(1:3, 11:15, 18, 19, 23, 25)]
+intervention <- gs_selected_terms[c(4, 9, 10, 17, 21)]
+disorder <- gs_selected_terms[c(5:8, 16, 20, 22, 24)]
+
+# all.equal(length(gs_selected_terms),
+#   sum(length(design), length(intervention), length(disorder))
+# )  # check that we grouped all terms
+
+gs_gruped_selected_terms <- list(  
+  design = design,
+  intervention = intervention,
+  disorder = disorder
+)
+```
+
+
+
+#### 6. Automatically write the search string
+
+```{r}
+# Write the search
+litsearchr::write_search(
+  gs_gruped_selected_terms,
+  languages = "English",
+  exactphrase = TRUE,
+  stemming = FALSE,
+  closure = "left",
+  writesearch = FALSE
+)
+```
+
+
+
+### Discussions
+
+
+
+
+
+### References
+
+Grames, E. M., Stillman, A. N., Tingley, M. W., & Elphick, C. S. (2019). An automated approach to identifying search terms for systematic reviews using keyword co‐occurrence networks. Methods in Ecology and Evolution, 10(10), 1645-1654.
