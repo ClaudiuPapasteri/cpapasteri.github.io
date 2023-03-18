@@ -211,7 +211,7 @@ pm_terms <- pm_terms[!duplicated(pm_terms)]
 We will consider the title and abstract of each article to represent the article's "content" and we will consider a term to have appeared in the article if it appears in either the title or abstract. Based on this we will create the document-feature matrix, where the "documents" are our articles (title and abstract) and the "features" are the search terms. The Co-Occurrence Network is computed using this document-feature matrix. 
 
 ```{r, cache=TRUE, message=FALSE, warning=FALSE}
-# Created Co-Occurrence Network
+# Create Co-Occurrence Network
 pm_docs <- paste(pm_df[, "title"], pm_df[, "abstract"]) # we will consider title and abstract of each article to represent the article's "content"
 pm_dfm <- litsearchr::create_dfm(elements = pm_docs, features = pm_terms) # document-feature matrix
 pm_coocnet <- litsearchr::create_network(pm_dfm, min_studies = 3)

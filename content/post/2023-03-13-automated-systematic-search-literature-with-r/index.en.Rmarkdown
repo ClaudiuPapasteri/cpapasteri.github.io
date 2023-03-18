@@ -1,0 +1,188 @@
+---
+title: Automated systematic literature search using R, litsearchr, easyPubMed and
+  Google Scholar web scraping
+author: Claudiu C. Papasteri
+date: '2023-03-13'
+slug: automated-systematic-search-literature-with-r
+categories:
+  - R
+  - metaverse
+  - meta-analysis
+  - webscraping
+tags:
+  - R
+  - metaverse
+  - meta-analysis
+  - litsearchr
+  - easyPubMed
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2023-03-13T21:09:03+02:00'
+featured: yes
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: yes
+projects: []
+---
+
+<!--
+blogdown::build_site(build_rmd = "E:/Github/cpapasteri.github.io/content/post/2023-03-13-automated-systematic-search-literature-with-r/index.en.Rmarkdown")
+-->
+
+### Introduction
+
+-  `easyPubMed` package: simplifies the use of the PubMed API
+-  my own Scholar Google Search web scraping function (this [gist](https://gist.github.com/ClaudiuPapasteri/7bef34394c395e03ee074f884ddbf4d4))
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+### Scholar Google web scraping
+
+We will use: 
+
+-  my Scholar Google search web scraping function to **quickly** extract a lot of literature info based on an preliminary *naïve* search query. 
+-  [`litsearchr`](https://elizagrames.github.io/litsearchr) for automated approach to identifying search terms for systematic reviews using keyword co-occurrence networks.
+-  [`stopwords`](https://cran.r-project.org/web/packages/stopwords/readme/README.html) for the Stopwords ISO Dataset which is the most comprehensive collection of stopwords for multiple languages. 
+-  [`igraph`](https://igraph.org/r/) for network analyses (this package is already a dependence of `litsearchr` but there are still many useful functions that are not wrapped by `litsearchr` functions). 
+-  `ggplot2`, `ggraph`, and `ggrepel` for plotting. 
+
+ 
+
+#### 1. Load or install packages
+
+```{r, echo=FALSE}
+# Package names
+packages <- c(
+  "litsearchr", "stopwords", "igraph", 
+  "ggplot2", "ggraph", "ggrepel"
+)
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+# Load packages
+lapply(packages, library, character.only = TRUE)
+```
+
+#### 2. Run the web scraping function
+
+<script src="https://gist.github.com/ClaudiuPapasteri/7bef34394c395e03ee074f884ddbf4d4.js"></script>
+
+```{r, cache=TRUE}
+# Scrape Scholar Google
+devtools::source_gist("https://gist.github.com/ClaudiuPapasteri/7bef34394c395e03ee074f884ddbf4d4")
+gs_df <- scrape_gs(query = 'intext:"psychotherapy" AND "PTSD"', pages = 1:100)
+```
+
+#### 3. Extract terms from scraped data
+
+```{r}
+# Extract terms from scraped data 
+gs_terms <- litsearchr::extract_terms(text = gs_df[,"title"], 
+                                      method = "fakerake", min_freq = 3, min_n = 2,
+                                      stopwords = stopwords::data_stopwords_stopwordsiso$en)
+```
+
+#### 4. Created Co-Occurrence Network
+
+```{r}
+# Created Co-Occurrence Network
+gs_docs <- paste(gs_df[, "title"], gs_df[, "abstract"]) # we will consider the title and abstract of each article to represent the article’s “content,” and we will consider a term to have appeared in the article if it appears in either the title or abstract
+
+gs_dfm <- litsearchr::create_dfm(elements = gs_docs, features = gs_terms) # ‘document-feature matrix’, where the ‘documents’ are our articles and the ‘features’ are the search terms
+
+gs_coocnet <- litsearchr::create_network(gs_dfm, min_studies = 3)
+
+ggraph(gs_coocnet, layout = "stress") +
+  coord_fixed() +
+  expand_limits(x = c(-3, 3)) +
+  geom_edge_link(aes(alpha = weight)) +
+  geom_node_point(shape = "circle filled", fill = "white") +
+  geom_node_text(aes(label = name), hjust = "outward", check_overlap = TRUE) +
+  guides(edge_alpha = "none") +
+  theme_void()
+```
+
+#### 5. Prune the Network based on node strength
+
+##### 5.1 Compute node strength
+
+```{r}
+# Prune the Network based on node strength
+gs_node_strength <- igraph::strength(gs_coocnet)
+gs_node_rankstrenght <- data.frame(term = names(gs_node_strength), strength = gs_node_strength, row.names = NULL)
+gs_node_rankstrenght$rank <- rank(gs_node_rankstrenght$strength, ties.method = "min")
+gs_node_rankstrenght <- gs_node_rankstrenght[order(gs_node_rankstrenght$rank),]
+
+gs_plot_strenght <- 
+  ggplot(gs_node_rankstrenght, aes(x = rank, y = strength, label = term)) +
+    geom_line(lwd = 0.8) +
+    geom_point() +
+    ggrepel::geom_text_repel(size = 3, hjust = "right", nudge_y = 3, max.overlaps = 30) +
+    theme_bw()
+gs_plot_strenght
+```
+
+##### 5.1 Prune based on chosen criteria
+
+```{r}
+# Cumulatively - retain a certain proportion (e.g. 80%) of the total strength of the network of search terms
+gs_cutoff_cum <- litsearchr::find_cutoff(gs_coocnet, method = "cumulative", percent = 0.8)
+# Changepoints - certain points along the ranking of terms where the strength of the next strongest term is much greater than that of the previous one
+gs_cutoff_change <- litsearchr::find_cutoff(gs_coocnet, method = "changepoint", knot_num = 3)
+
+gs_plot_strenght +
+  geom_hline(yintercept = gs_cutoff_cum, color = "red", lwd = 0.7, linetype = "longdash", alpha = 0.6) +
+  geom_hline(yintercept = gs_cutoff_change, color = "orange", lwd = 0.7, linetype = "dashed", alpha = 0.6)
+
+gs_cutoff_crit <- gs_cutoff_change[which.min(abs(gs_cutoff_change - gs_cutoff_cum))]  # e.g. nearest cutpoint to cumulative criterion (cumulative produces one value, changepoint can be many)
+
+gs_selected_terms <- litsearchr::get_keywords(litsearchr::reduce_graph(gs_coocnet, gs_cutoff_crit))
+gs_selected_terms
+```
+
+#### 5. Manual grouping into clusters
+
+```{r}
+# Manual grouping into clusters - for more rigorous search we will need a combination of OR and AND operators
+gs_gruped_selected_terms <- list(  
+  design = gs_selected_terms[c(1,2,3,8,9,10,11,12)],
+  disorder = gs_selected_terms[c(4,5,6,7,13)]
+)
+```
+
+#### 6. Automatically write the search string
+
+```{r}
+# Write the search
+litsearchr::write_search(
+  gs_gruped_selected_terms,
+  languages = "English",
+  exactphrase = TRUE,
+  stemming = FALSE,
+  closure = "left",
+  writesearch = FALSE
+)
+```
+
+### Discussions
+
+
+### References
+
+Grames, E. M., Stillman, A. N., Tingley, M. W., & Elphick, C. S. (2019). An automated approach to identifying search terms for systematic reviews using keyword co‐occurrence networks. Methods in Ecology and Evolution, 10(10), 1645-1654.

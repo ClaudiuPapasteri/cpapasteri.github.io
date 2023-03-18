@@ -150,7 +150,9 @@ Especially for `bookdown::serve_book()`.
 
 #### 8. Scheduling with [`cronR`](https://github.com/bnosac/cronR) or [`taskscheduleR`](https://github.com/bnosac/taskscheduleR)
 
-`cronR` for Unix/Linux - `cronR::cron_rstudioaddin()` `taskscheduleR` for Windows - `taskscheduleR::taskscheduler_create()`
+`cronR` for Unix/Linux - `cronR::cron_rstudioaddin()` 
+
+`taskscheduleR` for Windows - `taskscheduleR::taskscheduler_create()`
 
 
 ```r

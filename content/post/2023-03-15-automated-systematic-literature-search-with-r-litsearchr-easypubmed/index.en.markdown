@@ -277,7 +277,7 @@ We will consider the title and abstract of each article to represent the article
 
 
 ```r
-# Created Co-Occurrence Network
+# Create Co-Occurrence Network
 pm_docs <- paste(pm_df[, "title"], pm_df[, "abstract"]) # we will consider title and abstract of each article to represent the article's "content"
 pm_dfm <- litsearchr::create_dfm(elements = pm_docs, features = pm_terms) # document-feature matrix
 pm_coocnet <- litsearchr::create_network(pm_dfm, min_studies = 3)
