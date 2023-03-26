@@ -1,0 +1,144 @@
+---
+title: Automated systematic literature search using R, litsearchr, and Google Scholar
+  web scraping
+author: Claudiu C. Papasteri
+date: '2023-03-18'
+slug: automated-systematic-literature-search-with-r-google-scholar-web-scraping
+categories:
+  - R
+  - metaverse
+  - meta-analysis
+  - webscraping
+tags:
+  - R
+  - metaverse
+  - meta-analysis
+  - webscraping
+  - litsearchr
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2023-03-18T15:27:19+02:00'
+featured: yes
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: yes
+projects: []
+---
+
+<!--
+blogdown::build_site(build_rmd = "E:/Github/cpapasteri.github.io/content/post/2023-03-18-automated-systematic-literature-search-with-r-google-scholar-web-scraping/index.en.Rmarkdown")
+-->
+
+### Introduction
+
+[previous post](/2023/03/15/automated-systematic-literature-search-with-r-litsearchr-easypubmed/) 
+
+You would like to do a systematic search of the scientific literature on a given topic. But a wild caveat appears - your familiarity (or lack there of) with the topic will bias your search, while your field lacks in standardized terminology and is fragmented into multiple nomenclature clusters.
+
+Grames et al. (2019) devised a method to address this (you can read the article [here](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.13268)). A gentle introduction to both R and `litsearchr` package that trivializes the analyses can be found on [Library Carpentry](https://carpentries-incubator.github.io/lc-litsearchr/).  
+
+Simply put we can *cast a wide net* using a *naive* search, retrieve relevant information from data bases (e.g., titles, keywords, abstracts) and analyse this interlinked text data to derive a systematic search strategy. I view it as way to bootstrap knowledge.  
+
+![](featured.png)
+
+<div style="text-align:center"><i>Representation of the litsearchr workflow (Grames et al., 2019) adapted by me for automated data base querying</i></div>
+
+ 
+
+We will use:
+
+-  my Scholar Google search web scraping function to extract literature metadata based on an preliminary *naive* search query. 
+-  [`easyPubMed`](https://www.data-pulse.com/dev_site/easypubmed/) that simplifies the use of the PubMed API to query and extract article data.
+-  [`litsearchr`](https://elizagrames.github.io/litsearchr) for automated approach to identifying search terms for systematic reviews using keyword co-occurrence networks.
+-  [`stopwords`](https://cran.r-project.org/web/packages/stopwords/readme/README.html) for the Stopwords ISO Dataset which is the most comprehensive collection of stopwords for multiple languages. 
+-  [`igraph`](https://igraph.org/r/) for network analyses (this package is already a dependence of `litsearchr` but there are still many useful functions that are not wrapped by `litsearchr` functions). 
+-  `ggplot2`, `ggraph`, and `ggrepel` for plotting. 
+
+ 
+
+#### 1. Load or install packages
+
+
+```r
+# litsearchr isn't yet on CRAN, need to install from github
+if (require(litsearchr)) remotes::install_github("elizagrames/litsearchr", ref = "main")
+
+# Packages to load/install
+packages <- c(
+  "easyPubMed",
+  "litsearchr", "stopwords", "igraph", 
+  "ggplot2", "ggraph", "ggrepel"
+)
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+# Load packages
+lapply(packages, library, character.only = TRUE)
+```
+
+ 
+
+#### 2. Run the web scraping function
+
+<script src="https://gist.github.com/ClaudiuPapasteri/7bef34394c395e03ee074f884ddbf4d4.js"></script>
+
+
+```r
+# Source web scraping function
+devtools::source_gist("https://gist.github.com/ClaudiuPapasteri/7bef34394c395e03ee074f884ddbf4d4")
+```
+
+
+```r
+########################
+# # get your IP
+# jsonlite::fromJSON(rvest::html_text(rvest::read_html("http://jsonip.com/")))$ip
+# 
+# # test proxy
+# session <- rvest::session("http://jsonip.com/",
+#                           httr::user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"),
+#                           httr::use_proxy("158.69.158.106", port = 8050))
+# page_text <- rvest::html_text(rvest::read_html(session))
+# ip <- jsonlite::fromJSON(page_text)$ip
+#####################
+```
+
+
+
+```r
+# Scrape Scholar Google
+useragent <- httr::user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36")
+# proxy1 <- httr::use_proxy("5.78.83.190", port = 8080)  # can pass proxy to function; here we just scrape patiently and don't use proxy
+gs_df1 <- scrape_gs(term = 'intext:"psychotherapy" AND "PTSD"', pages = 1:20, crawl_delay = 1.2, useragent)  # scrape first 20 pages (200 published works)
+```
+
+
+```r
+# even with some human-like behavior, the crawling script still gets blocked by server if run too long
+gs_df2 <- scrape_gs(term = 'intext:"psychotherapy" AND "PTSD"', pages = 21:40, crawl_delay = 1.2, useragent)  # scrape next 20 pages (200 published works)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
