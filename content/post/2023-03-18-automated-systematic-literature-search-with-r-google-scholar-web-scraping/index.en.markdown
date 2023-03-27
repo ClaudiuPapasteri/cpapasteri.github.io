@@ -132,11 +132,17 @@ gs_df2 <- scrape_gs(term = 'intext:"psychotherapy" AND "PTSD"', pages = 21:40, c
 gs_df3 <- scrape_gs(term = 'intext:"psychotherapy" AND "PTSD"', pages = 41:60, crawl_delay = 1.2, useragent)  # scrape next 20 pages (200 published works)
 ```
 
+
+```r
+# if you don't have proxies, just scrape sequentially and cache results 
+gs_df4 <- scrape_gs(term = 'intext:"psychotherapy" AND "PTSD"', pages = 61:80, crawl_delay = 1.2, useragent)  # scrape next 20 pages (200 published works)
+```
+
 Check the first 10 entries:
 
 
 ```r
-gs_df <- rbind(gs_df1, gs_df2, gs_df3)
+gs_df <- rbind(gs_df1, gs_df2, gs_df3, gs_df4)  # total 100 pages (1000 published works)
 
 # See results
 head(gs_df)
