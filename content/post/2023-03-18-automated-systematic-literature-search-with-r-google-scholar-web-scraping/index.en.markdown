@@ -97,6 +97,7 @@ devtools::source_gist("https://gist.github.com/ClaudiuPapasteri/7bef34394c395e03
 
 ```r
 ########################
+# # If you use a proxy, test if it works
 # # get your IP
 # jsonlite::fromJSON(rvest::html_text(rvest::read_html("http://jsonip.com/")))$ip
 # 
@@ -105,7 +106,8 @@ devtools::source_gist("https://gist.github.com/ClaudiuPapasteri/7bef34394c395e03
 #                           httr::user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"),
 #                           httr::use_proxy("158.69.158.106", port = 8050))
 # page_text <- rvest::html_text(rvest::read_html(session))
-# ip <- jsonlite::fromJSON(page_text)$ip
+# proxy_ip <- jsonlite::fromJSON(page_text)$ip
+# proxy_ip
 #####################
 ```
 
@@ -124,11 +126,17 @@ gs_df1 <- scrape_gs(term = 'intext:"psychotherapy" AND "PTSD"', pages = 1:20, cr
 gs_df2 <- scrape_gs(term = 'intext:"psychotherapy" AND "PTSD"', pages = 21:40, crawl_delay = 1.2, useragent)  # scrape next 20 pages (200 published works)
 ```
 
+
+```r
+# if you don't have proxies, just scrape sequentially and cache results 
+gs_df3 <- scrape_gs(term = 'intext:"psychotherapy" AND "PTSD"', pages = 41:60, crawl_delay = 1.2, useragent)  # scrape next 20 pages (200 published works)
+```
+
 Check the first 10 entries:
 
 
 ```r
-gs_df <- rbind(gs_df1, gs_df2)
+gs_df <- rbind(gs_df1, gs_df2, gs_df3)
 
 # See results
 head(gs_df)
