@@ -33,8 +33,6 @@ blogdown::build_site(build_rmd = "E:/Github/cpapasteri.github.io/content/post/20
 
 ### Introduction
 
-[previous post](/2023/03/15/automated-systematic-literature-search-with-r-litsearchr-easypubmed/) 
-
 You would like to do a systematic search of the scientific literature on a given topic. But a wild caveat appears - your familiarity (or lack there of) with the topic will bias your search, while your field lacks in standardized terminology and is fragmented into multiple nomenclature clusters.
 
 Grames et al. (2019) devised a method to address this (you can read the article [here](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.13268)). A gentle introduction to both R and `litsearchr` package that trivializes the analyses can be found on [Library Carpentry](https://carpentries-incubator.github.io/lc-litsearchr/).  
@@ -44,6 +42,8 @@ Simply put we can *cast a wide net* using a *naïve* search, retrieve relevant i
 ![](featured.png)
 
 <div style="text-align:center"><i>Representation of the litsearchr workflow (Grames et al., 2019) adapted by me for automated data base querying</i></div>
+
+This is a followup on a [previous post](https://claudiu.psychlab.eu/post/automated-systematic-literature-search-with-r-litsearchr-easypubmed/) that presents the same same procedure but using PubMed API curtsy of `easyPubMed` package. Unfortunately, Google Scholar has no API, so here will just scrape titles and sections of abstracts. Keep in mind that scraping Google Scholar is not *polite*, that the process take a long time due to rate limiting and that using only expressions from article titles is generally less effective than using multiple sources together (e.g. titles, keywords, and possibly full abstracts).   
 
  
 
@@ -94,20 +94,25 @@ lapply(packages, library, character.only = TRUE)
 devtools::source_gist("https://gist.github.com/ClaudiuPapasteri/7bef34394c395e03ee074f884ddbf4d4")
 ```
 
+If you use proxies you should check that they are working:
+
 
 ```r
 ########################
-# # If you use a proxy, test if it works
-# # get your IP
-# jsonlite::fromJSON(rvest::html_text(rvest::read_html("http://jsonip.com/")))$ip
-# 
-# # test proxy
-# session <- rvest::session("http://jsonip.com/",
-#                           httr::user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"),
-#                           httr::use_proxy("158.69.158.106", port = 8050))
-# page_text <- rvest::html_text(rvest::read_html(session))
-# proxy_ip <- jsonlite::fromJSON(page_text)$ip
-# proxy_ip
+if (require(jsonlite)) install.packages("jsonlite")
+library(jsonlite)
+
+# get your IP
+jsonlite::fromJSON(rvest::html_text(rvest::read_html("http://jsonip.com/")))$ip
+
+# test proxy
+session <- rvest::session("http://jsonip.com/",
+                          httr::user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"),
+                          httr::use_proxy(url = "XXXX", port = 8888, 
+                                          username = "XXXX", password = "XXXX"))
+page_text <- rvest::html_text(rvest::read_html(session))
+proxy_ip <- jsonlite::fromJSON(page_text)$ip
+proxy_ip
 #####################
 ```
 
@@ -138,11 +143,17 @@ gs_df3 <- scrape_gs(term = 'intext:"psychotherapy" AND "PTSD"', pages = 41:60, c
 gs_df4 <- scrape_gs(term = 'intext:"psychotherapy" AND "PTSD"', pages = 61:80, crawl_delay = 1.2, useragent)  # scrape next 20 pages (200 published works)
 ```
 
+
+```r
+# we stopped at page 99 because that's how many pages Google Scholar gives us 
+gs_df5 <- scrape_gs(term = 'intext:"psychotherapy" AND "PTSD"', pages = 81:99, crawl_delay = 1.2, useragent)  # scrape last 19 pages (190 published works)
+```
+
 Check the first 10 entries:
 
 
 ```r
-gs_df <- rbind(gs_df1, gs_df2, gs_df3, gs_df4)  # total 100 pages (1000 published works)
+gs_df <- rbind(gs_df1, gs_df2, gs_df3, gs_df4, gs_df5)  # total of 99 pages (990 published works)
 
 # See results
 head(gs_df)
@@ -177,6 +188,22 @@ head(gs_df)
 ## 4    … in psychotherapy for posttraumatic stress disorder (PTSD). The authors tested \ninterpersonal psychotherapy (… in pilot PTSD research as a non-exposure-based non-cognitive-behavioral …
 ## 5 … psychotherapy the low basal cortisol levels in PTSD patients would increase. To our knowledge \nthis is the first study to assess the effects of psychotherapy in PTSD on these hormones. …
 ## 6      … of Iraq and Afghanistan veterans with PTSD. PTSD visits were linked to 8.1 million psychotherapy \nnotes, and annotators labeled 3467 randomly-selected psychotherapy notes (kappa = …
+```
+
+Note that I ran this for several days to scrape each chunk of 20 pages. If you scrape continuously, the server will either respond with `HTTP Error 429: Too Many Requests` or with a *Captcha* page. If you run into issues and no informative error message is displayed, check if ran into a *Captcha* page:
+
+
+```r
+gs_url_base <- "https://scholar.google.com/scholar"
+term <- 'intext:"psychotherapy" AND "PTSD"'
+page_no <- 90
+gs_url <- paste0(gs_url_base, "?start=", page_no - 1, "&q=", noquote(gsub("\\s+", "+", trimws(term))))
+session <- rvest::session(gs_url)  
+wbpage <- rvest::read_html(session)
+page_text <- rvest::html_text(wbpage)
+page_text  # check what the page displays  
+captcha <- rvest::html_text(rvest::html_elements(wbpage, "#gs_captcha_ccl"))
+captcha   # check if there is a captcha
 ```
 
  
@@ -216,7 +243,7 @@ ggraph(gs_coocnet, layout = "stress") +
   theme_void()
 ```
 
-<img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-5-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-6-1.png" width="672" />
 
  
 
@@ -243,7 +270,7 @@ gs_plot_strenght <-
 gs_plot_strenght
 ```
 
-<img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-6-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-7-1.png" width="100%" />
 
 ##### 5.1 Prune based on chosen criteria
 
@@ -263,46 +290,87 @@ gs_plot_strenght +
   geom_hline(yintercept = gs_cutoff_change, color = "orange", lwd = 0.7, linetype = "dashed", alpha = 0.6)
 ```
 
-<img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-8-1.png" width="672" />
 
 ```r
 gs_cutoff_crit <- gs_cutoff_change[which.min(abs(gs_cutoff_change - gs_cutoff_cum))]  # e.g. nearest cutpoint to cumulative criterion (cumulative produces one value, changepoints may be many)
 
-gs_selected_terms <- litsearchr::get_keywords(litsearchr::reduce_graph(gs_coocnet, gs_cutoff_crit))
+gs_maxselected_terms <- litsearchr::get_keywords(litsearchr::reduce_graph(gs_coocnet, gs_cutoff_crit))
 ```
 
 Inspect selected terms:
   
 
 ```r
+gs_maxselected_terms
+```
+
+```
+##  [1] "-assisted psychotherapy"        "assisted psychotherapy"        
+##  [3] "clinical trial"                 "cognitive processing"          
+##  [5] "cognitive processing therapy"   "controlled trial"              
+##  [7] "evidence-based psychotherapy"   "exposure therapy"              
+##  [9] "mdma-assisted psychotherapy"    "post-traumatic stress"         
+## [11] "post-traumatic stress disorder" "posttraumatic stress"          
+## [13] "posttraumatic stress disorder"  "processing therapy"            
+## [15] "prolonged exposure"             "prolonged exposure therapy"    
+## [17] "randomized clinical"            "randomized clinical trial"     
+## [19] "randomized controlled"          "randomized controlled trial"   
+## [21] "stress disorder"                "systematic review"             
+## [23] "traumatic stress"               "traumatic stress disorder"
+```
+
+Some expression already contain others. For example, "mdma-assisted psychotherapy" is an instance of "-assisted psychotherapy" which is a very important key term that defines psychotherapies that use pharmacological means or other tools to achieve it's results. This happens for a lot of strings, and generally, we would like to keep only the *shortest unique substring*
+
+Keep only shortest unique substrings:
+
+
+```r
+superstring <- rep(FALSE, length(gs_maxselected_terms))
+for(i in seq_len(length(gs_maxselected_terms))) {
+  superstring[i] <- any(stringr::str_detect(gs_maxselected_terms[i], gs_maxselected_terms[-which(gs_maxselected_terms == gs_maxselected_terms[i])]))
+}
+gs_selected_terms <- gs_maxselected_terms[!superstring]
+```
+
+We will also manually do two other changes: (1) we are not interested in "systematic reviews" so we will remove it;
+(2) we will add the terms "psychotherapy" and "ptsd" as they are not already present in their simplest form. 
+
+
+```r
+gs_selected_terms <- gs_selected_terms[-which(gs_selected_terms == "systematic review")]
+gs_selected_terms <- c(gs_selected_terms, "psychotherapy", "ptsd")
+```
+
+Inspect selected terms:
+
+
+```r
 gs_selected_terms
 ```
 
 ```
-##  [1] "clinical trial"                 "controlled trial"              
-##  [3] "controlled trials"              "evidence-based psychotherapy"  
-##  [5] "interpersonal psychotherapy"    "post-traumatic stress"         
-##  [7] "post-traumatic stress disorder" "posttraumatic stress"          
-##  [9] "posttraumatic stress disorder"  "randomized clinical"           
-## [11] "randomized clinical trial"      "randomized controlled"         
-## [13] "randomized controlled trial"    "randomized controlled trials"  
-## [15] "stress disorder"                "systematic review"
+##  [1] "assisted psychotherapy"       "clinical trial"              
+##  [3] "cognitive processing"         "controlled trial"            
+##  [5] "evidence-based psychotherapy" "exposure therapy"            
+##  [7] "processing therapy"           "prolonged exposure"          
+##  [9] "randomized clinical"          "randomized controlled"       
+## [11] "stress disorder"              "traumatic stress"            
+## [13] "psychotherapy"                "ptsd"
 ```
 
-....
+We see that term groupings are obvious: type of study (design), type of intervention, disorder/symptoms, and population.
 
-
+ 
 
 #### 6. Manual grouping into clusters
 
 
 ```r
-gs_selected_terms <- gs_selected_terms[-c(18, 19, 20, 32, 22, 25, 30)] # exclude terms
-
 # Manual grouping into clusters - for more rigorous search we will need a combination of OR and AND operators
-design <- gs_selected_terms[c(1:3, 11:15, 18, 19, 23, 25)]
-intervention <- gs_selected_terms[c(4, 9, 10, 17, 21)]
-disorder <- gs_selected_terms[c(5:8, 16, 20, 22, 24)]
+design <- gs_selected_terms[c(2, 4, 9, 10)]
+intervention <- gs_selected_terms[c(1, 3, 5, 6, 7, 8, 13)]
+disorder <- gs_selected_terms[c(11, 12, 14)]
 
 # all.equal(length(gs_selected_terms),
 #   sum(length(design), length(intervention), length(disorder))
@@ -337,16 +405,16 @@ litsearchr::write_search(
 ```
 
 ```
-## [1] "((\"clinical trial\" OR \"controlled trial\" OR \"randomized clinical trial\" OR \"randomized controlled\" OR \"stress disorder\") AND (\"evidence-based psychotherapy\" OR \"posttraumatic stress disorder\" OR \"randomized clinical\") AND (\"interpersonal psychotherapy\" OR \"post-traumatic stress\" OR \"posttraumatic stress\" OR \"systematic review\"))"
+## [1] "((\"clinical trial\" OR \"controlled trial\" OR \"randomized clinical\" OR \"randomized controlled\") AND (\"assisted psychotherapy\" OR \"cognitive processing\" OR \"evidence-based psychotherapy\" OR \"exposure therapy\" OR \"processing therapy\" OR \"prolonged exposure\" OR psychotherapy) AND (\"stress disorder\" OR \"traumatic stress\" OR ptsd))"
 ```
 
-
+ 
 
 ### Discussions
 
+Only the last two steps, pertaining to term exclusion and term grouping, need the careful decisions of a human researcher. The automatic workflow, on it's own, found some important terms that I would have surely omitted. I am especially pleased about "exposure therapy", "cognitive processing", "processing therapy" which describe classes of psychotherapy interventions but lack the prefix "psycho-", making it harder to distinguish them from other non-psychotherapy interventions simply termed "therapy". Also, the method correctly identifies "assisted psychotherapy" where pharmacological agents are used, which is another important niche that may be easily omitted.
 
-
-
+ 
 
 ### References
 
