@@ -4,6 +4,7 @@ author: Claudiu C. Papasteri
 date: '2022-10-16'
 slug: homelab-6-dockerized-rstudio-server-packages-persistent-storage-and-ssl-certs
 categories:
+  - Rblog
   - HomeLab
   - psychlab
   - R
