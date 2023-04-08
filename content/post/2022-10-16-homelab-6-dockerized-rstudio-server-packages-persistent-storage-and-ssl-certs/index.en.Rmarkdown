@@ -4,11 +4,11 @@ author: Claudiu C. Papasteri
 date: '2022-10-16'
 slug: homelab-6-dockerized-rstudio-server-packages-persistent-storage-and-ssl-certs
 categories:
-  - Rblog
   - HomeLab
   - psychlab
   - R
   - Ubuntu
+  - Rblog
 tags:
   - HomeLab
   - psychlab
@@ -163,7 +163,11 @@ Hosts > Add Proxy Host
     -   Websockets Support: enabled
     -   Access List: Publicly Accessible
 
-![]({{< blogdown/postref >}rstudio_npm_1.png})
+
+```{r}    
+knitr::include_graphics("rstudio_npm_1.png", rel_path = FALSE)
+```
+
 
 -   SSL
 
@@ -172,8 +176,10 @@ Hosts > Add Proxy Host
     -   HSTS Enabled: enabled
     -   HTTP/2 Support: enabled
     -   HSTS Subdomains: disabled
-    
-![]({{< blogdown/postref >}rstudio_npm_2.png})
+
+```{r}    
+knitr::include_graphics("rstudio_npm_2.png", rel_path = FALSE)
+```
 
 -   Custom Locations
     -   (nothing)
@@ -186,7 +192,9 @@ If all went well you can access RStudio Server by going to your subdomain (in my
 
 ### 4. Test RStudio Server with persitent storage
 
-![]({{< blogdown/postref >}rstudio_1.png})
+```{r}    
+knitr::include_graphics("rstudio_1.png", rel_path = FALSE)
+```
 
 Install `renv` package in R:
 
