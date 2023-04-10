@@ -168,14 +168,7 @@ Hosts > Add Proxy Host
     -   Websockets Support: enabled
     -   Access List: Publicly Accessible
 
-
-
-```r
-knitr::include_graphics("rstudio_npm_1.png", rel_path = FALSE)
-```
-
-<img src="rstudio_npm_1.png" width="251" />
-
+![]({{< blogdown/postref >}}rstudio_npm_1.png)
 
 -   SSL
 
@@ -185,12 +178,7 @@ knitr::include_graphics("rstudio_npm_1.png", rel_path = FALSE)
     -   HTTP/2 Support: enabled
     -   HSTS Subdomains: disabled
 
-
-```r
-knitr::include_graphics("rstudio_npm_2.png", rel_path = FALSE)
-```
-
-<img src="rstudio_npm_2.png" width="252" />
+![]({{< blogdown/postref >}}rstudio_npm_2.png)
 
 -   Custom Locations
     -   (nothing)
@@ -203,12 +191,7 @@ If all went well you can access RStudio Server by going to your subdomain (in my
 
 ### 4. Test RStudio Server with persitent storage
 
-
-```r
-knitr::include_graphics("rstudio_1.png", rel_path = FALSE)
-```
-
-<img src="rstudio_1.png" width="424" />
+![]({{< blogdown/postref >}}rstudio_1.png)
 
 Install `renv` package in R:
 

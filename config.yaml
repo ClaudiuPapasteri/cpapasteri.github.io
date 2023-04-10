@@ -4,8 +4,10 @@ theme: "starter-hugo-academic"
 # Hugo Documentation: https://gohugo.io/getting-started/configuration/#all-configuration-settings
 # This file is formatted using YAML syntax - learn more at https://learnxinyminutes.com/docs/yaml/
 
-title:  # Website name
-baseurl: 'https://cpapasteri.netlify.app/' # Website URL
+# Website name
+title: Claudiu's Blog
+# 'https://cpapasteri.netlify.app/' # Website URL
+baseurl: 'https://claudiu.psychlab.eu/'   
 
 # Footer text, e.g. '© {year} Me'
 copyright: '&copy; Claudiu C. Papasteri, {year} &middot; Made with&ensp;<a href="https://github.com/ClaudiuPapasteri/cpapasteri.github.io" target="_blank" rel="noopener"><i class="fas fa-code-branch"></i></a><a href="https://github.com/rstudio/blogdown" target="_blank" rel="noopener"></a>, the&ensp;<a href="https://cran.r-project.org/" target="_blank" rel="noopener"><i class="fab fa-r-project"></i> </a><a href="https://github.com/rstudio/blogdown" target="_blank" rel="noopener">blogdown</a> package, and the <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.' 
@@ -50,6 +52,8 @@ disableAliases: true
 outputs:
   home: [HTML, RSS, JSON, WebAppManifest, headers, redirects]
   section: [HTML, RSS]
+  taxonomy: [HTML, RSS]
+  taxonomyTerm: [HTML, RSS]
 imaging:
   resampleFilter: lanczos
   quality: 75
@@ -74,3 +78,10 @@ related:
       weight: 100
     - name: categories
       weight: 70
+
+# After Hugo update - whitelist WC_
+security:
+  funcs:
+    getenv:
+      - ^HUGO_
+      - ^WC_

@@ -45,3 +45,6 @@ Thumbs.db
 # Safe to add if Netlify builds the site - otherwise don't
 /public/
 /resources/
+
+# You can safely add to .gitignore: .hugo_build.lock
+.hugo_build.lock
