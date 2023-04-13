@@ -5,6 +5,7 @@ date: '2022-01-08'
 slug: lcs-mediation-pre-post-control
 categories:
   - R
+  - Rblog
 tags: []
 subtitle: ''
 summary: ''
@@ -71,19 +72,11 @@ $$
 c_{y2x} - c’_{2yx}
 $$
 
-<!-- [![](featured.png "LCS specification of the ANCOVA two-wave mediation model.")](https://doi.org/10.3389/fpsyg.2021.709198)  -->
+![]({{< blogdown/postref >}}featured.png)
 
-<figure>
+<div style="text-align:center"><i>LCS specification of the ANCOVA two-wave mediation model (Valente & MacKinnon, 2017).</i></div>
 
-<img src="featured.png" width="427" height="327"/>
-
-<figcaption>
-
-LCS specification of the ANCOVA two-wave mediation model (Valente & MacKinnon, 2017).
-
-</figcaption>
-
-</figure>
+ 
 
 ### Running the analysis in lavaan
 
@@ -109,7 +102,7 @@ mydata <- read.csv("exmp.csv", header = TRUE)
 head(mydata, 10)
 ```
 
-### Wrapping the model fitting call inside a function.
+#### Wrapping the model fitting call inside a function.
 
 The model specification is a bit lengthy so for easy of use (and DRY principles), I have wrapped it inside a function that takes the following arguments:
 

@@ -6,6 +6,7 @@ date: '2021-09-09'
 slug: updating-r-and-rstudio-and-avoiding-dependency-hell-of-updating-to-new-major-version
 categories:
   - R
+  - Rblog
 tags:
   - update
   - R

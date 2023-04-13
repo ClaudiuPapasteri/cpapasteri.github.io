@@ -9,6 +9,7 @@ categories:
   - metaverse
   - meta-analysis
   - webscraping
+  - Rblog
 tags:
   - R
   - metaverse
@@ -27,9 +28,6 @@ image:
 projects: []
 ---
 
-<!--
-blogdown::build_site(build_rmd = "E:/Github/cpapasteri.github.io/content/post/2023-03-18-automated-systematic-literature-search-with-r-google-scholar-web-scraping/index.en.Rmarkdown")
--->
 
 ### Introduction
 
@@ -39,8 +37,7 @@ Grames et al. (2019) devised a method to address this (you can read the article 
 
 Simply put we can *cast a wide net* using a *naïve* search, retrieve relevant information from data bases (e.g., titles, keywords, abstracts) and analyse this interlinked text data to derive a systematic search strategy. I view it as way to bootstrap knowledge.  
 
-![](featured.png)
-
+![]({{< blogdown/postref >}}featured.png)
 <div style="text-align:center"><i>Representation of the litsearchr workflow (Grames et al., 2019) adapted by me for automated data base querying</i></div>
 
 This is a followup on a [previous post](https://claudiu.psychlab.eu/post/automated-systematic-literature-search-with-r-litsearchr-easypubmed/) that presents the same same procedure but using PubMed API curtsy of `easyPubMed` package. Unfortunately, Google Scholar has no API, so here will just scrape titles and sections of abstracts. Keep in mind that scraping Google Scholar is not *polite*, that the process take a long time due to rate limiting and that using only expressions from article titles is generally less effective than using multiple sources together (e.g. titles, keywords, and possibly full abstracts).   

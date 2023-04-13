@@ -6,6 +6,7 @@ slug: top-5-rstudio-addins-for-productivity-and-quality-of-life
 categories:
   - R
   - RStudio
+  - Rblog
 tags:
   - R
   - Rstudio
@@ -24,9 +25,6 @@ editor_options:
     wrap: 140
 ---
 
-<!--
-blogdown::build_site(build_rmd = "E:/Github/cpapasteri.github.io/content/post/2023-02-23-top-5-rstudio-addins-for-productivity-and-quality-of-life/index.en.Rmarkdown")
--->
 
 ### Introduction
 
@@ -60,11 +58,11 @@ Sys.setenv(OPENAI_API_KEY = "<APIKEY>")    #  OpenAI API key
 The addin works on text selection:
 
 **"Spelling and Grammar"** 
-![](gptstudio_spelling.gif) 
+![]({{< blogdown/postref >}}gptstudio_spelling.gif) 
 **"Comment your code"** 
-![](gptstudio_commentcode.gif) 
+![]({{< blogdown/postref >}}gptstudio_commentcode.gif) 
 **"Write/Code from prompt"**  
-![](gptstudio_promptcode.gif)
+![]({{< blogdown/postref >}}gptstudio_promptcode.gif)
 
  
 
@@ -76,7 +74,7 @@ In order to show the "Markers" pane in RStudio: Menu "Tools" -\> "Global Options
 window: click "Code" on the left; click "Diagnostics" tab; check "Show diagnostics for R".
 
 **"Lint current file"**
-![](lintr.gif)
+![]({{< blogdown/postref >}}lintr.gif)
 
 `lintr` is complementary to the `styler` package which automatically restyles code, eliminating some of the problems that `lintr` can
 detect.
@@ -85,7 +83,7 @@ detect.
 
 **"Style section"** / **"Style active file"**
 
-![](styler.gif)
+![]({{< blogdown/postref >}}styler.gif)
 
 Beyond addin use, `lintr` and `styler` are excellent at R project level, coupled with `precommit` package. Read more about this workflow [on
 this r-bloggers post](https://www.r-bloggers.com/2022/09/enforcing-style-in-an-r-project/).
@@ -107,7 +105,7 @@ install.packages("whoami")
 ```
 
 **"CRANsearcher"** / **"CRAN Package Search"**
-![](CRANsearcher_pkgsearch.gif)
+![]({{< blogdown/postref >}}CRANsearcher_pkgsearch.gif)
 
  
 
@@ -118,7 +116,7 @@ example in a separate environment, copy output to clipboard and then just paste 
 addins:
 
 **"Paste as tibble"** + **"Reprex selection"**
-![](datapasta_w_reprex_sheet_to_tribble.gif)
+![]({{< blogdown/postref >}}datapasta_w_reprex_sheet_to_tribble.gif)
 
  
 
@@ -131,7 +129,7 @@ remotes::install_github("strboul/caseconverter")
 ```
 
 **"To upper case"** / **"To lower case"** / **"To snake case"**
-![](caseconverter.gif)
+![]({{< blogdown/postref >}}caseconverter.gif)
 
  
 

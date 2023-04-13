@@ -7,7 +7,7 @@ categories:
   - R
   - metaverse
   - meta-analysis
-  - litsearchr
+  - Rblog
 tags:
   - R
   - metaverse
@@ -28,9 +28,6 @@ image:
 projects: []
 ---
 
-<!--
-blogdown::build_site(build_rmd = "E:/Github/cpapasteri.github.io/content/post/2023-03-15-automated-systematic-literature-search-with-r-litsearchr-easypubmed/index.en.Rmarkdown")
--->
 
 ### Introduction
 
@@ -40,7 +37,7 @@ Grames et al. (2019) devised a method to address this (you can read the article 
 
 Simply put we can *cast a wide net* using a *naïve* search, retrieve relevant information from data bases (e.g., titles, keywords, abstracts) and analyse this interlinked text data to derive a systematic search strategy. I view it as way to bootstrap knowledge.  
 
-![](featured.png)
+![]({{< blogdown/postref >}}featured.png)
 <div style="text-align:center"><i>Representation of the litsearchr workflow (Grames et al., 2019) adapted by me for automated data base querying</i></div>
 
  

@@ -6,6 +6,7 @@ slug: install-r-rstudio-rstudioserver-ubuntu-linux
 categories:
   - R
   - Ubuntu
+  - Rblog
 tags:
   - R
   - Rstudio
@@ -23,6 +24,7 @@ image:
   preview_only: no
 projects: []
 ---
+
 
 ### Install R (`r-base`)
 
@@ -179,7 +181,7 @@ By default RStudio Server runs on port 8787 and accepts connections from all rem
 
 In the browser it will look like this:
 
-![](Rstudioserver_capture.png)
+![]({{< blogdown/postref >}}Rstudioserver_capture.png)
 
 A couple of notes related to user authentication (from [RStudio Getting Starded guide](https://support.rstudio.com/hc/en-us/articles/200552306-Getting-Started)):
 

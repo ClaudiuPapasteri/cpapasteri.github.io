@@ -5,7 +5,9 @@ date: '2021-09-18'
 slug: fuzzy-matching-with-custom-functions
 categories:
   - R
+  - Rblog
 tags:
+  - R
   - stringdist
   - fuzzyjoin
   - fuzzy

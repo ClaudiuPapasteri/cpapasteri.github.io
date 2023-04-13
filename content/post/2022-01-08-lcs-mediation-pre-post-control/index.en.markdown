@@ -5,6 +5,7 @@ date: '2022-01-08'
 slug: lcs-mediation-pre-post-control
 categories:
   - R
+  - Rblog
 tags: []
 subtitle: ''
 summary: ''
@@ -71,19 +72,11 @@ $$
 c_{y2x} - c’_{2yx}
 $$
 
-<!-- [![](featured.png "LCS specification of the ANCOVA two-wave mediation model.")](https://doi.org/10.3389/fpsyg.2021.709198)  -->
+![]({{< blogdown/postref >}}featured.png)
 
-<figure>
+<div style="text-align:center"><i>LCS specification of the ANCOVA two-wave mediation model (Valente & MacKinnon, 2017).</i></div>
 
-<img src="featured.png" width="427" height="327"/>
-
-<figcaption>
-
-LCS specification of the ANCOVA two-wave mediation model (Valente & MacKinnon, 2017).
-
-</figcaption>
-
-</figure>
+ 
 
 ### Running the analysis in lavaan
 
@@ -120,7 +113,7 @@ head(mydata, 10)
 ## 10 10 1 -1.36327 -0.21351  1.09073 -0.27868
 ```
 
-### Wrapping the model fitting call inside a function.
+#### Wrapping the model fitting call inside a function.
 
 The model specification is a bit lengthy so for easy of use (and DRY principles), I have wrapped it inside a function that takes the following arguments:
 
@@ -251,28 +244,38 @@ lcs_ancova_fit
 ```
 
 ```
-##                npar                fmin               chisq                  df 
-##              20.000               0.000               0.000               0.000 
-##              pvalue      baseline.chisq         baseline.df     baseline.pvalue 
-##                  NA             897.718              10.000               0.000 
-##                 cfi                 tli                nnfi                 rfi 
-##               1.000               1.000               1.000               1.000 
-##                 nfi                pnfi                 ifi                 rni 
-##               1.000               0.000               1.000               1.000 
-##                logl   unrestricted.logl                 aic                 bic 
-##           -3252.224           -3252.224            6544.448            6628.741 
-##              ntotal                bic2               rmsea      rmsea.ci.lower 
-##             500.000            6565.259               0.000               0.000 
-##      rmsea.ci.upper        rmsea.pvalue                 rmr          rmr_nomean 
-##               0.000                  NA               0.000               0.000 
-##                srmr        srmr_bentler srmr_bentler_nomean                crmr 
-##               0.000               0.000               0.000               0.000 
-##         crmr_nomean          srmr_mplus   srmr_mplus_nomean               cn_05 
-##               0.000               0.000               0.000               1.000 
-##               cn_01                 gfi                agfi                pgfi 
-##               1.000               1.000               1.000               0.000 
-##                 mfi                ecvi 
-##               1.000               0.080
+##                  npar                  fmin                 chisq 
+##                20.000                 0.000                 0.000 
+##                    df                pvalue        baseline.chisq 
+##                 0.000                    NA               897.718 
+##           baseline.df       baseline.pvalue                   cfi 
+##                10.000                 0.000                 1.000 
+##                   tli                  nnfi                   rfi 
+##                 1.000                 1.000                 1.000 
+##                   nfi                  pnfi                   ifi 
+##                 1.000                 0.000                 1.000 
+##                   rni                  logl     unrestricted.logl 
+##                 1.000             -3252.224             -3252.224 
+##                   aic                   bic                ntotal 
+##              6544.448              6628.741               500.000 
+##                  bic2                 rmsea        rmsea.ci.lower 
+##              6565.259                 0.000                 0.000 
+##        rmsea.ci.upper        rmsea.ci.level          rmsea.pvalue 
+##                 0.000                 0.900                    NA 
+##        rmsea.close.h0 rmsea.notclose.pvalue     rmsea.notclose.h0 
+##                 0.050                    NA                 0.080 
+##                   rmr            rmr_nomean                  srmr 
+##                 0.000                 0.000                 0.000 
+##          srmr_bentler   srmr_bentler_nomean                  crmr 
+##                 0.000                 0.000                 0.000 
+##           crmr_nomean            srmr_mplus     srmr_mplus_nomean 
+##                 0.000                 0.000                 0.000 
+##                 cn_05                 cn_01                   gfi 
+##                 1.000                 1.000                 1.000 
+##                  agfi                  pgfi                   mfi 
+##                 1.000                 0.000                 1.000 
+##                  ecvi 
+##                 0.080
 ```
 
 Asymmetric distribution of the product confidence intervals can be computed for the mediated effect estimates using the `RMediation` package.
@@ -296,7 +299,7 @@ lcsdistrprodCI
 ```
 
 ```
-## $`97.5% CI`
+## $`95% CI`
 ## [1] 0.1283278 0.3153073
 ## 
 ## $Estimate

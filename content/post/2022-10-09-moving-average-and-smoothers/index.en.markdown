@@ -5,6 +5,7 @@ date: '2022-10-09'
 slug: moving-average-and-smoothers
 categories:
   - R
+  - Rblog
 tags:
   - R
   - stats
@@ -117,7 +118,17 @@ plot1 <-
   scale_y_continuous(limits = c(0, 20), breaks = seq(0, 20, by = 5)) +
   scale_color_manual(name = "functions", values = c("fun1" = "black", "fun2" = "gray")) +
   theme_bw()
+```
 
+```
+## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+## i Please use `linewidth` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.
+```
+
+```r
 plot1
 ```
 

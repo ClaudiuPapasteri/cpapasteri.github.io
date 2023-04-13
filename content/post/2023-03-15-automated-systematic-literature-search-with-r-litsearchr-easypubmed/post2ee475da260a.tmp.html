@@ -1,0 +1,315 @@
+<div id="introduction" class="section level3" number="0.0.1">
+<h3><span class="header-section-number">0.0.1</span> Introduction</h3>
+<p>You would like to do a systematic search of the scientific literature on a given topic. But a wild caveat appears - your familiarity (or lack there of) with the topic will bias your search, while your field lacks in standardized terminology and is fragmented into multiple nomenclature clusters.</p>
+<p>Grames et al. (2019) devised a method to address this (you can read the article <a href="https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.13268">here</a>). A gentle introduction to both R and <code>litsearchr</code> package that trivializes the analyses can be found on <a href="https://carpentries-incubator.github.io/lc-litsearchr/">Library Carpentry</a>.</p>
+<p>Simply put we can <em>cast a wide net</em> using a <em>naïve</em> search, retrieve relevant information from data bases (e.g., titles, keywords, abstracts) and analyse this interlinked text data to derive a systematic search strategy. I view it as way to bootstrap knowledge.</p>
+<img src="%7B%7B%3C%20blogdown/postref%20%3E%7D%7Dfeatured.png" />
+<div style="text-align:center">
+<i>Representation of the litsearchr workflow (Grames et al., 2019) adapted by me for automated data base querying</i>
+</div>
+<p> </p>
+<p>We will use the following packages:</p>
+<ul>
+<li><a href="https://www.data-pulse.com/dev_site/easypubmed/"><code>easyPubMed</code></a> that simplifies the use of the PubMed API to query and extract article data.</li>
+<li><a href="https://elizagrames.github.io/litsearchr"><code>litsearchr</code></a> for automated approach to identifying search terms for systematic reviews using keyword co-occurrence networks.</li>
+<li><a href="https://cran.r-project.org/web/packages/stopwords/readme/README.html"><code>stopwords</code></a> for the Stopwords ISO Dataset which is the most comprehensive collection of stopwords for multiple languages.</li>
+<li><a href="https://igraph.org/r/"><code>igraph</code></a> for network analyses (this package is already a dependence of <code>litsearchr</code> but there are still many useful functions that are not wrapped by <code>litsearchr</code> functions).</li>
+<li><code>ggplot2</code>, <code>ggraph</code>, and <code>ggrepel</code> for plotting.</li>
+</ul>
+<p> </p>
+<div id="load-or-install-packages" class="section level4" number="0.0.1.1">
+<h4><span class="header-section-number">0.0.1.1</span> 1. Load or install packages</h4>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># litsearchr isn&#39;t yet on CRAN, need to install from github</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">require</span>(litsearchr)) remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;elizagrames/litsearchr&quot;</span>, <span class="at">ref =</span> <span class="st">&quot;main&quot;</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Packages to load/install</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;easyPubMed&quot;</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;litsearchr&quot;</span>, <span class="st">&quot;stopwords&quot;</span>, <span class="st">&quot;igraph&quot;</span>, </span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;ggplot2&quot;</span>, <span class="st">&quot;ggraph&quot;</span>, <span class="st">&quot;ggrepel&quot;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Install packages not yet installed</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>installed_packages <span class="ot">&lt;-</span> packages <span class="sc">%in%</span> <span class="fu">rownames</span>(<span class="fu">installed.packages</span>())</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(installed_packages <span class="sc">==</span> <span class="cn">FALSE</span>)) {</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">install.packages</span>(packages[<span class="sc">!</span>installed_packages])</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Load packages</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="fu">lapply</span>(packages, library, <span class="at">character.only =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p> </p>
+</div>
+<div id="query-pubmed-for-relevant-literature" class="section level4" number="0.0.1.2">
+<h4><span class="header-section-number">0.0.1.2</span> 2. Query PubMed for relevant literature</h4>
+<div id="single-query" class="section level5" number="0.0.1.2.1">
+<h5><span class="header-section-number">0.0.1.2.1</span> 2.1. Single query</h5>
+<p>This is to demonstrate the basic workflow for a single query. The <code>term</code> uses boolean operators to define a query for articles that contain “psychotherapy” and “PTSD” only from year 2020.</p>
+<p>The <code>easyPubMed</code> steps are quite simple: (1) retrieve PubMed article ids for the corresponding query using <code>get_pubmed_ids</code>, (2) fetch the actually data corresponding to the retrieved ids, and (3) extract and restructure relevant information.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Single query</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>term <span class="ot">&lt;-</span> <span class="st">&#39;((&quot;2020/01/01&quot;[Date - Publication] : &quot;2020/12/31&quot;[Date - Publication])) AND (psychotherapy[Title/Abstract] AND PTSD[Title/Abstract])&#39;</span>  </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>pmid_list <span class="ot">&lt;-</span> easyPubMed<span class="sc">::</span><span class="fu">get_pubmed_ids</span>(term)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># as.integer(as.character(pmid_list$Count))    # get count of articles returned by query</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># pmid_list$IdList                             # get PubMed IDs returned by query</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># httr::BROWSE(</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#   paste(&quot;http://www.ncbi.nlm.nih.gov/pubmed/&quot;, </span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#     pmid_list$IdList[[1]], sep = &quot;&quot;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#   )</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># )  # open in browser the abstract of first record in data frame </span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>pm_xml <span class="ot">&lt;-</span> easyPubMed<span class="sc">::</span><span class="fu">fetch_pubmed_data</span>(pmid_list)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>pm_df <span class="ot">&lt;-</span> easyPubMed<span class="sc">::</span><span class="fu">table_articles_byAuth</span>(<span class="at">pubmed_data =</span> pm_xml, </span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">included_authors =</span> <span class="st">&quot;first&quot;</span>, </span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">getKeywords =</span> <span class="cn">TRUE</span>, <span class="at">max_chars =</span> <span class="dv">500</span>)</span></code></pre></div>
+<p>Check the first 10 entries:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># See results</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">as.data.frame</span>(<span class="fu">lapply</span>(<span class="fu">head</span>(pm_df[<span class="fu">c</span>(<span class="st">&quot;pmid&quot;</span>, <span class="st">&quot;doi&quot;</span>, <span class="st">&quot;jabbrv&quot;</span>, <span class="st">&quot;keywords&quot;</span>, <span class="st">&quot;abstract&quot;</span>)]), substr, <span class="at">start =</span> <span class="dv">1</span>, <span class="at">stop =</span> <span class="dv">30</span>))</span></code></pre></div>
+<pre><code>##       pmid                         doi                        jabbrv
+## 1 34629839 10.1016/j.cbpra.2020.09.002              Cogn Behav Pract
+## 2 34471458  10.1007/s40653-020-00327-9        J Child Adolesc Trauma
+## 3 33990240  10.1016/j.beth.2020.08.005                    Behav Ther
+## 4 33739764                                                  Rev Prat
+## 5 33552844  10.1007/s40501-020-00222-y Curr Treat Options Psychiatry
+## 6 33520399                                       Innov Clin Neurosci
+##                         keywords                       abstract
+## 1 PTSD; cognitive processing the Of the many vulnerable groups 
+## 2 Adolescents; Children; Evidenc Central American youth are at 
+## 3 Cognitive Behavioral Therapy;  Fidelity monitoring is a criti
+## 4 Fibromyalgia; Stress Disorders Fibromyalgia and post-traumati
+## 5 Comorbidity; Pharmacotherapy;  Sleep disturbances, insomnia a
+## 6 EMDR; eye movement desensitiza DEPARTMENT EDITORS Julie P. Ge</code></pre>
+</div>
+<div id="multiple-queries" class="section level5" number="0.0.1.2.2">
+<h5><span class="header-section-number">0.0.1.2.2</span> 2.2. Multiple queries</h5>
+<p>We will search in Title/Abstract for the presence three terms (“psychotherapy” / “psychological intervention”, “trial” / “randomized”, “PTSD”) and constrain the search to years 2022 and 2023, respectively. The following outlines the way to use <code>expand.grid</code> to generate combinations of the terms that will subsequently be used for multiple queries.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Multiple queries</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>years <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">2022</span><span class="sc">:</span><span class="dv">2023</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>years <span class="ot">&lt;-</span> <span class="fu">sprintf</span>(<span class="st">&#39;((&quot;%d/01/01&quot;[Date - Publication] : &quot;%d/12/31&quot;[Date - Publication]))&#39;</span>, years, years)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>term1 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&#39;psychotherapy&#39;</span>, <span class="st">&#39;psychological intervention&#39;</span>) <span class="sc">|&gt;</span> <span class="fu">paste0</span>(<span class="st">&#39;[Title/Abstract]&#39;</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>term2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&#39;trial&#39;</span>, <span class="st">&#39;randomized&#39;</span>) <span class="sc">|&gt;</span> <span class="fu">paste0</span>(<span class="st">&#39;[Title/Abstract]&#39;</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>term3 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&#39;PTSD&#39;</span>) <span class="sc">|&gt;</span> <span class="fu">paste0</span>(<span class="st">&#39;[Title/Abstract]&#39;</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>search_terms <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="st">&quot;year&quot;</span> <span class="ot">=</span> years, <span class="st">&quot;term1&quot;</span> <span class="ot">=</span> term1, <span class="st">&quot;term2&quot;</span> <span class="ot">=</span> term2, <span class="st">&quot;term3&quot;</span> <span class="ot">=</span> term3)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>search_terms<span class="sc">$</span>final <span class="ot">&lt;-</span> </span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paste0</span>(search_terms<span class="sc">$</span>year, <span class="st">&#39; AND &#39;</span>, </span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="st">&#39;(&#39;</span>, </span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">apply</span>(search_terms[, <span class="fu">grep</span>(<span class="st">&quot;term.&quot;</span>, <span class="fu">colnames</span>(search_terms))], <span class="dv">1</span>, paste, <span class="at">collapse =</span> <span class="st">&quot; AND &quot;</span>, <span class="at">sep =</span> <span class="st">&quot; &quot;</span>),</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;)&#39;</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>pmid_list <span class="ot">&lt;-</span> <span class="fu">lapply</span>(search_terms<span class="sc">$</span>final, easyPubMed<span class="sc">::</span>get_pubmed_ids)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="co"># lapply(pmid_list, &quot;[&quot;, &quot;Count&quot;)    # get count per query</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="co"># lapply(pmid_list, &quot;[&quot;, &quot;IdList&quot;)   # get PubMed IDs per query</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>pm_xml <span class="ot">&lt;-</span> <span class="fu">lapply</span>(pmid_list, easyPubMed<span class="sc">::</span>fetch_pubmed_data)</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>pm_df_list <span class="ot">&lt;-</span> </span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(pm_xml, easyPubMed<span class="sc">::</span>table_articles_byAuth, </span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">included_authors =</span> <span class="st">&quot;first&quot;</span>, <span class="at">getKeywords =</span> <span class="cn">TRUE</span>, <span class="at">max_chars =</span> <span class="dv">500</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>  )  <span class="co"># get only first author so that each study has only one row; multiple authors =&gt; long format data frame</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>pm_df_list <span class="ot">&lt;-</span> <span class="fu">Map</span>(cbind, pm_df_list, </span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;query&quot;</span> <span class="ot">=</span> search_terms<span class="sc">$</span>final, </span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;terms&quot;</span> <span class="ot">=</span> <span class="fu">apply</span>(search_terms[, <span class="fu">grep</span>(<span class="st">&quot;term.&quot;</span>, <span class="fu">colnames</span>(search_terms))], <span class="dv">1</span>, paste, <span class="at">collapse =</span> <span class="st">&quot; AND &quot;</span>, <span class="at">sep =</span> <span class="st">&quot; &quot;</span>)</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>  ) <span class="co"># add the query strings that produced the results  </span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>pm_df <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, pm_df_list)  </span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>pm_df <span class="ot">&lt;-</span> pm_df[<span class="sc">!</span><span class="fu">duplicated</span>(pm_df), ]  <span class="co"># exclude duplicates</span></span></code></pre></div>
+<p>Inspect terms:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>search_terms</span></code></pre></div>
+<pre><code>##                                                                      year
+## 1 ((&quot;2022/01/01&quot;[Date - Publication] : &quot;2022/12/31&quot;[Date - Publication]))
+## 2 ((&quot;2023/01/01&quot;[Date - Publication] : &quot;2023/12/31&quot;[Date - Publication]))
+## 3 ((&quot;2022/01/01&quot;[Date - Publication] : &quot;2022/12/31&quot;[Date - Publication]))
+## 4 ((&quot;2023/01/01&quot;[Date - Publication] : &quot;2023/12/31&quot;[Date - Publication]))
+## 5 ((&quot;2022/01/01&quot;[Date - Publication] : &quot;2022/12/31&quot;[Date - Publication]))
+## 6 ((&quot;2023/01/01&quot;[Date - Publication] : &quot;2023/12/31&quot;[Date - Publication]))
+## 7 ((&quot;2022/01/01&quot;[Date - Publication] : &quot;2022/12/31&quot;[Date - Publication]))
+## 8 ((&quot;2023/01/01&quot;[Date - Publication] : &quot;2023/12/31&quot;[Date - Publication]))
+##                                        term1                      term2
+## 1              psychotherapy[Title/Abstract]      trial[Title/Abstract]
+## 2              psychotherapy[Title/Abstract]      trial[Title/Abstract]
+## 3 psychological intervention[Title/Abstract]      trial[Title/Abstract]
+## 4 psychological intervention[Title/Abstract]      trial[Title/Abstract]
+## 5              psychotherapy[Title/Abstract] randomized[Title/Abstract]
+## 6              psychotherapy[Title/Abstract] randomized[Title/Abstract]
+## 7 psychological intervention[Title/Abstract] randomized[Title/Abstract]
+## 8 psychological intervention[Title/Abstract] randomized[Title/Abstract]
+##                  term3
+## 1 PTSD[Title/Abstract]
+## 2 PTSD[Title/Abstract]
+## 3 PTSD[Title/Abstract]
+## 4 PTSD[Title/Abstract]
+## 5 PTSD[Title/Abstract]
+## 6 PTSD[Title/Abstract]
+## 7 PTSD[Title/Abstract]
+## 8 PTSD[Title/Abstract]
+##                                                                                                                                                                              final
+## 1                   ((&quot;2022/01/01&quot;[Date - Publication] : &quot;2022/12/31&quot;[Date - Publication])) AND (psychotherapy[Title/Abstract] AND trial[Title/Abstract] AND PTSD[Title/Abstract])
+## 2                   ((&quot;2023/01/01&quot;[Date - Publication] : &quot;2023/12/31&quot;[Date - Publication])) AND (psychotherapy[Title/Abstract] AND trial[Title/Abstract] AND PTSD[Title/Abstract])
+## 3      ((&quot;2022/01/01&quot;[Date - Publication] : &quot;2022/12/31&quot;[Date - Publication])) AND (psychological intervention[Title/Abstract] AND trial[Title/Abstract] AND PTSD[Title/Abstract])
+## 4      ((&quot;2023/01/01&quot;[Date - Publication] : &quot;2023/12/31&quot;[Date - Publication])) AND (psychological intervention[Title/Abstract] AND trial[Title/Abstract] AND PTSD[Title/Abstract])
+## 5              ((&quot;2022/01/01&quot;[Date - Publication] : &quot;2022/12/31&quot;[Date - Publication])) AND (psychotherapy[Title/Abstract] AND randomized[Title/Abstract] AND PTSD[Title/Abstract])
+## 6              ((&quot;2023/01/01&quot;[Date - Publication] : &quot;2023/12/31&quot;[Date - Publication])) AND (psychotherapy[Title/Abstract] AND randomized[Title/Abstract] AND PTSD[Title/Abstract])
+## 7 ((&quot;2022/01/01&quot;[Date - Publication] : &quot;2022/12/31&quot;[Date - Publication])) AND (psychological intervention[Title/Abstract] AND randomized[Title/Abstract] AND PTSD[Title/Abstract])
+## 8 ((&quot;2023/01/01&quot;[Date - Publication] : &quot;2023/12/31&quot;[Date - Publication])) AND (psychological intervention[Title/Abstract] AND randomized[Title/Abstract] AND PTSD[Title/Abstract])</code></pre>
+<p>Inspect literature trends with respect to our query:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>pm_df<span class="sc">$</span>date <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(<span class="fu">apply</span>(pm_df[, <span class="fu">c</span>(<span class="st">&quot;year&quot;</span>, <span class="st">&quot;month&quot;</span>, <span class="st">&quot;day&quot;</span>)], <span class="dv">1</span>, paste0, <span class="at">collapse =</span> <span class="st">&quot;-&quot;</span>))</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>pm_df<span class="sc">$</span>ym <span class="ot">&lt;-</span> <span class="fu">format</span>(pm_df<span class="sc">$</span>date, <span class="st">&quot;%Y-%m&quot;</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>pm_df<span class="sc">$</span>term <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;</span><span class="sc">\\</span><span class="st">[Title/Abstract</span><span class="sc">\\</span><span class="st">]&quot;</span>, <span class="st">&quot;&quot;</span>, pm_df<span class="sc">$</span>terms)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>pm_df <span class="sc">|&gt;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(term, ym) <span class="sc">|&gt;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">date =</span> <span class="fu">as.Date</span>(<span class="fu">paste0</span>(ym, <span class="st">&quot;-01&quot;</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> n)) <span class="sc">+</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>() <span class="sc">+</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(term <span class="sc">~</span> .) <span class="sc">+</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_date</span>(<span class="at">date_breaks =</span> <span class="st">&quot;1 year&quot;</span>, <span class="at">date_minor_breaks =</span> <span class="st">&quot;2 months&quot;</span>, <span class="at">date_labels =</span> <span class="st">&quot;%Y-%m&quot;</span>) <span class="sc">+</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;Year&quot;</span>) <span class="sc">+</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;Count&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&quot;2022/2023: Psychotherapy trials for PTSD&quot;</span>) <span class="sc">+</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code></pre></div>
+<p><img src="index.en_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p> </p>
+</div>
+</div>
+<div id="extract-terms-from-retrieved-data" class="section level4" number="0.0.1.3">
+<h4><span class="header-section-number">0.0.1.3</span> 3. Extract terms from retrieved data</h4>
+<p>Within <code>extract_terms()</code> use <code>method = "tagged"</code> if keywords are provided. For extracting <em>interesting</em> words out of titles use the Rapid Automatic Keyword Extraction (RAKE) algorithm, coupled with a good stop word collection.</p>
+<p>Here we will do both. My heuristic is <em>when in doubt, pool results together</em>.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract terms from title</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>pm_terms_title <span class="ot">&lt;-</span> litsearchr<span class="sc">::</span><span class="fu">extract_terms</span>(<span class="at">text =</span> pm_df[,<span class="st">&quot;title&quot;</span>], </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                                            <span class="at">method =</span> <span class="st">&quot;fakerake&quot;</span>, <span class="at">min_freq =</span> <span class="dv">3</span>, <span class="at">min_n =</span> <span class="dv">2</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                                            <span class="at">stopwords =</span> stopwords<span class="sc">::</span>data_stopwords_stopwordsiso<span class="sc">$</span>en)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract terms from keywords</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>pm_terms_keywords <span class="ot">&lt;-</span> litsearchr<span class="sc">::</span><span class="fu">extract_terms</span>(<span class="at">keywords =</span> <span class="fu">trimws</span>(<span class="fu">unlist</span>(<span class="fu">strsplit</span>(pm_df[,<span class="st">&quot;keywords&quot;</span>], <span class="st">&quot;;&quot;</span>))), </span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">method =</span> <span class="st">&quot;tagged&quot;</span>, <span class="at">min_freq =</span> <span class="dv">3</span>, <span class="at">min_n =</span> <span class="dv">1</span>, <span class="at">max_n =</span> <span class="dv">5</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Pool the extracted terms together</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>pm_terms <span class="ot">&lt;-</span> <span class="fu">c</span>(pm_terms_title, pm_terms_keywords)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>pm_terms <span class="ot">&lt;-</span> pm_terms[<span class="sc">!</span><span class="fu">duplicated</span>(pm_terms)]</span></code></pre></div>
+<p> </p>
+</div>
+<div id="create-co-occurrence-network" class="section level4" number="0.0.1.4">
+<h4><span class="header-section-number">0.0.1.4</span> 4. Create Co-Occurrence Network</h4>
+<p>We will consider the title and abstract of each article to represent the article’s “content” and we will consider a term to have appeared in the article if it appears in either the title or abstract. Based on this we will create the document-feature matrix, where the “documents” are our articles (title and abstract) and the “features” are the search terms. The Co-Occurrence Network is computed using this document-feature matrix.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create Co-Occurrence Network</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>pm_docs <span class="ot">&lt;-</span> <span class="fu">paste</span>(pm_df[, <span class="st">&quot;title&quot;</span>], pm_df[, <span class="st">&quot;abstract&quot;</span>]) <span class="co"># we will consider title and abstract of each article to represent the article&#39;s &quot;content&quot;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>pm_dfm <span class="ot">&lt;-</span> litsearchr<span class="sc">::</span><span class="fu">create_dfm</span>(<span class="at">elements =</span> pm_docs, <span class="at">features =</span> pm_terms) <span class="co"># document-feature matrix</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>pm_coocnet <span class="ot">&lt;-</span> litsearchr<span class="sc">::</span><span class="fu">create_network</span>(pm_dfm, <span class="at">min_studies =</span> <span class="dv">3</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggraph</span>(pm_coocnet, <span class="at">layout =</span> <span class="st">&quot;stress&quot;</span>) <span class="sc">+</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expand_limits</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>)) <span class="sc">+</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_edge_link</span>(<span class="fu">aes</span>(<span class="at">alpha =</span> weight)) <span class="sc">+</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_point</span>(<span class="at">shape =</span> <span class="st">&quot;circle filled&quot;</span>, <span class="at">fill =</span> <span class="st">&quot;white&quot;</span>) <span class="sc">+</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> name), <span class="at">hjust =</span> <span class="st">&quot;outward&quot;</span>, <span class="at">check_overlap =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">edge_alpha =</span> <span class="st">&quot;none&quot;</span>) <span class="sc">+</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span></code></pre></div>
+<p><img src="index.en_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p> </p>
+</div>
+<div id="prune-the-network-based-on-node-strength" class="section level4" number="0.0.1.5">
+<h4><span class="header-section-number">0.0.1.5</span> 5. Prune the Network based on node strength</h4>
+<div id="compute-node-strength" class="section level5" number="0.0.1.5.1">
+<h5><span class="header-section-number">0.0.1.5.1</span> 5.1 Compute node strength</h5>
+<p>Node strength in a network is calculated by summing up the weights of all edges connected to the respective node.Thus, node strength investigates how strongly it is directly connected to other nodes in the network.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Prune the Network based on node strength</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>pm_node_strength <span class="ot">&lt;-</span> igraph<span class="sc">::</span><span class="fu">strength</span>(pm_coocnet)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>pm_node_rankstrenght <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">term =</span> <span class="fu">names</span>(pm_node_strength), <span class="at">strength =</span> pm_node_strength, <span class="at">row.names =</span> <span class="cn">NULL</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>pm_node_rankstrenght<span class="sc">$</span>rank <span class="ot">&lt;-</span> <span class="fu">rank</span>(pm_node_rankstrenght<span class="sc">$</span>strength, <span class="at">ties.method =</span> <span class="st">&quot;min&quot;</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>pm_node_rankstrenght <span class="ot">&lt;-</span> pm_node_rankstrenght[<span class="fu">order</span>(pm_node_rankstrenght<span class="sc">$</span>rank),]</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>pm_plot_strenght <span class="ot">&lt;-</span> </span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(pm_node_rankstrenght, <span class="fu">aes</span>(<span class="at">x =</span> rank, <span class="at">y =</span> strength, <span class="at">label =</span> term)) <span class="sc">+</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">lwd =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  ggrepel<span class="sc">::</span><span class="fu">geom_text_repel</span>(<span class="at">size =</span> <span class="dv">3</span>, <span class="at">hjust =</span> <span class="st">&quot;right&quot;</span>, <span class="at">nudge_y =</span> <span class="dv">3</span>, <span class="at">max.overlaps =</span> <span class="dv">30</span>) <span class="sc">+</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>pm_plot_strenght</span></code></pre></div>
+<p><img src="index.en_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="prune-based-on-chosen-criteria" class="section level5" number="0.0.1.5.2">
+<h5><span class="header-section-number">0.0.1.5.2</span> 5.1 Prune based on chosen criteria</h5>
+<p>We want to keep only those nodes that have high strength, but how will we decide how many to prune out? <code>litsearchr::find_cutoff()</code> provides us with two ways to decide: cumulative cutoff and change points. The cumulative cutoff method simply retains a certain proportion of the total strength. The change points method uses <code>changepoint::cpt.mean()</code> under the hood to calculate optimal cutoff positions where the trend in strength shows sharp changes.</p>
+<p>Again, we will use the heuristic <em>when in doubt, pool results together</em>, i.e. we will use the change point nearest the to the cumulative cutoff value we set.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cumulatively - retain a certain proportion (e.g. 80%) of the total strength of the network of search terms</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>pm_cutoff_cum <span class="ot">&lt;-</span> litsearchr<span class="sc">::</span><span class="fu">find_cutoff</span>(pm_coocnet, <span class="at">method =</span> <span class="st">&quot;cumulative&quot;</span>, <span class="at">percent =</span> <span class="fl">0.8</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Changepoints - certain points along the ranking of terms where the strength of the next strongest term is much greater than that of the previous one</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>pm_cutoff_change <span class="ot">&lt;-</span> litsearchr<span class="sc">::</span><span class="fu">find_cutoff</span>(pm_coocnet, <span class="at">method =</span> <span class="st">&quot;changepoint&quot;</span>, <span class="at">knot_num =</span> <span class="dv">3</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>pm_plot_strenght <span class="sc">+</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> pm_cutoff_cum, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lwd =</span> <span class="fl">0.7</span>, <span class="at">linetype =</span> <span class="st">&quot;longdash&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> pm_cutoff_change, <span class="at">color =</span> <span class="st">&quot;orange&quot;</span>, <span class="at">lwd =</span> <span class="fl">0.7</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>)</span></code></pre></div>
+<p><img src="index.en_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>pm_cutoff_crit <span class="ot">&lt;-</span> pm_cutoff_change[<span class="fu">which.min</span>(<span class="fu">abs</span>(pm_cutoff_change <span class="sc">-</span> pm_cutoff_cum))]  <span class="co"># e.g. nearest cutpoint to cumulative criterion (cumulative produces one value, changepoints may be many)</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>pm_selected_terms <span class="ot">&lt;-</span> litsearchr<span class="sc">::</span><span class="fu">get_keywords</span>(litsearchr<span class="sc">::</span><span class="fu">reduce_graph</span>(pm_coocnet, pm_cutoff_crit))</span></code></pre></div>
+<p>Inspect selected terms:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>pm_selected_terms</span></code></pre></div>
+<pre><code>##  [1] &quot;clinical trial&quot;                 &quot;controlled trial&quot;              
+##  [3] &quot;controlled trials&quot;              &quot;exposure therapy&quot;              
+##  [5] &quot;post-traumatic stress&quot;          &quot;post-traumatic stress disorder&quot;
+##  [7] &quot;posttraumatic stress&quot;           &quot;posttraumatic stress disorder&quot; 
+##  [9] &quot;psychological intervention&quot;     &quot;psychological interventions&quot;   
+## [11] &quot;randomized clinical&quot;            &quot;randomized clinical trial&quot;     
+## [13] &quot;randomized controlled&quot;          &quot;randomized controlled trial&quot;   
+## [15] &quot;randomized controlled trials&quot;   &quot;stress disorder&quot;               
+## [17] &quot;trauma-focused psychotherapy&quot;   &quot;adult&quot;                         
+## [19] &quot;aged&quot;                           &quot;child&quot;                         
+## [21] &quot;effectiveness&quot;                  &quot;mental health&quot;                 
+## [23] &quot;meta-analysis&quot;                  &quot;post-traumatic&quot;                
+## [25] &quot;psychological&quot;                  &quot;psychotherapy&quot;                 
+## [27] &quot;ptsd&quot;                           &quot;rct&quot;                           
+## [29] &quot;trauma&quot;                         &quot;treatment&quot;                     
+## [31] &quot;trial&quot;                          &quot;veterans&quot;</code></pre>
+<p>We see that some term groupings are obvious: type of study (design), type of intervention, disorder/symptoms, and population. We are not interested in a particular population, so we will exclude terms like “child”, “adult”, “aged”, “veterans”. We will also exclude terms that are good candidates for these groups but are too wide for our scope: “mental health” is too wide for disorder/symptoms, while “psychological” and “treatment” are too wide for type of intervention. Afterwards we will manually define groupings for the rest of the terms.</p>
+<p> </p>
+</div>
+</div>
+<div id="manual-grouping-into-clusters" class="section level4" number="0.0.1.6">
+<h4><span class="header-section-number">0.0.1.6</span> 6. Manual grouping into clusters</h4>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>pm_selected_terms <span class="ot">&lt;-</span> pm_selected_terms[<span class="sc">-</span><span class="fu">c</span>(<span class="dv">18</span>, <span class="dv">19</span>, <span class="dv">20</span>, <span class="dv">32</span>, <span class="dv">22</span>, <span class="dv">25</span>, <span class="dv">30</span>)] <span class="co"># exclude terms</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Manual grouping into clusters - for more rigorous search we will need a combination of OR and AND operators</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>design <span class="ot">&lt;-</span> pm_selected_terms[<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">11</span><span class="sc">:</span><span class="dv">15</span>, <span class="dv">18</span>, <span class="dv">19</span>, <span class="dv">23</span>, <span class="dv">25</span>)]</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>intervention <span class="ot">&lt;-</span> pm_selected_terms[<span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">9</span>, <span class="dv">10</span>, <span class="dv">17</span>, <span class="dv">21</span>)]</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>disorder <span class="ot">&lt;-</span> pm_selected_terms[<span class="fu">c</span>(<span class="dv">5</span><span class="sc">:</span><span class="dv">8</span>, <span class="dv">16</span>, <span class="dv">20</span>, <span class="dv">22</span>, <span class="dv">24</span>)]</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co"># all.equal(length(pm_selected_terms),</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   sum(length(design), length(intervention), length(disorder))</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="co"># )  # check that we grouped all terms</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>pm_gruped_selected_terms <span class="ot">&lt;-</span> <span class="fu">list</span>(  </span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> design,</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">intervention =</span> intervention,</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">disorder =</span> disorder</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p> </p>
+</div>
+<div id="automatically-write-the-search-string" class="section level4" number="0.0.1.7">
+<h4><span class="header-section-number">0.0.1.7</span> 7. Automatically write the search string</h4>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Write the search</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>litsearchr<span class="sc">::</span><span class="fu">write_search</span>(</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  pm_gruped_selected_terms,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">languages =</span> <span class="st">&quot;English&quot;</span>,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">exactphrase =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">stemming =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">closure =</span> <span class="st">&quot;left&quot;</span>,</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">writesearch =</span> <span class="cn">FALSE</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<pre><code>## [1] &quot;English is written&quot;</code></pre>
+<pre><code>## [1] &quot;((\&quot;clinical trial\&quot; OR \&quot;controlled trial\&quot; OR \&quot;randomized clinical\&quot; OR \&quot;randomized controlled\&quot; OR effectiveness OR meta-analysis OR rct OR trial) AND (\&quot;exposure therapy\&quot; OR \&quot;psychological intervention\&quot; OR \&quot;trauma-focused psychotherapy\&quot; OR psychotherapy) AND (\&quot;posttraumatic stress\&quot; OR \&quot;stress disorder\&quot; OR post-traumatic OR ptsd OR trauma))&quot;</code></pre>
+<p> </p>
+</div>
+</div>
+<div id="discussions" class="section level3" number="0.0.2">
+<h3><span class="header-section-number">0.0.2</span> Discussions</h3>
+<p>Only the last two steps, pertaining to term exclusion and term grouping, need the careful decisions of a human researcher. The automatic workflow, on it’s own, found some important terms that I would have surely omitted. I am especially pleased about “exposure therapy” which is a prevalent class of psychotherapy interventions but is called a “therapy”, making it harder to distinguish from other terms that end in “therapy” but are not psychotherapies.</p>
+<p> </p>
+</div>
+<div id="references" class="section level3" number="0.0.3">
+<h3><span class="header-section-number">0.0.3</span> References</h3>
+<p>Grames, E. M., Stillman, A. N., Tingley, M. W., &amp; Elphick, C. S. (2019). An automated approach to identifying search terms for systematic reviews using keyword co‐occurrence networks. Methods in Ecology and Evolution, 10(10), 1645-1654.</p>
+</div>

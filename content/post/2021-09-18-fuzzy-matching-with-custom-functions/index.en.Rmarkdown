@@ -5,7 +5,9 @@ date: '2021-09-18'
 slug: fuzzy-matching-with-custom-functions
 categories:
   - R
+  - Rblog
 tags:
+  - R
   - stringdist
   - fuzzyjoin
   - fuzzy
@@ -26,6 +28,7 @@ editor_options:
   markdown: 
     wrap: 72
 ---
+
 
 ### The problem at hand
 

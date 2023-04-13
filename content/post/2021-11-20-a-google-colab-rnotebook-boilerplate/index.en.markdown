@@ -5,7 +5,9 @@ date: '2021-11-20'
 slug: a-google-colab-rnotebook-boilerplate
 categories:
   - R
+  - Rblog
 tags:
+  - R
   - Rnotebook
   - google colab
   - googledrive
@@ -21,6 +23,7 @@ image:
   preview_only: no
 projects: []
 ---
+
 
 ### Motivation
 
