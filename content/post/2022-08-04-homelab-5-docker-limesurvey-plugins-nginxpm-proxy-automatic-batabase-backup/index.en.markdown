@@ -239,7 +239,7 @@ sudo usermod -aG docker $USER                  # add your user to the docker gro
 getent group docker                            # check that you are member of the group
 
 sudo chown root:docker /var/run/docker.sock    # change group ownership of the docker.sock file
-sudo chmod 666 /var/run/docker.sock            # provide read write permission to docker.sock file
+sudo chmod root:docker /var/run/docker.sock    # provide read write permission to docker.sock file
 
 # test by running a docker command
 # docker ps

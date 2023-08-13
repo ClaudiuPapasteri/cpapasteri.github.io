@@ -18,14 +18,14 @@ subtitle:
 design:
   columns: "1"
   background:
-    image: Monet-La-Corniche-Monaco.jpg
-    image_darken: 1.5
+    image: good_mod_2_2.jpg
+    image_darken: 1.1
     image_parallax: true
     image_position: center
     image_size: cover
     text_color_light: false
   spacing:
-    padding: ["20px", "0", "20px", "0"]
+    padding: ["20px", "250px", "20px", "0px"]
 ---
 <!-- &ensp; -->
 &ensp;
@@ -43,3 +43,17 @@ This year I am planning to add the *Courses* section.
 {{% /callout %}}
 
 &ensp;
+
+<!-- 
+design:
+  columns: "1"
+  background:
+    image: good_mod_2_1.jpg 
+    image_darken: 1.5
+    image_parallax: true
+    image_position: center
+    image_size: cover
+    text_color_light: false
+  spacing:
+    padding: ["20px", "0", "20px", "0"]
+-->

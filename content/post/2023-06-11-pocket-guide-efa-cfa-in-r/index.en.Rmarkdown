@@ -1,0 +1,660 @@
+---
+title: Pocket guide to Exploratory and Confirmatory Factor Analysis in R
+author: Claudiu C. Papasteri
+date: '2023-06-11'
+slug: pocket-guide-EFA-CFA-in-R
+categories:
+  - R
+  - Rblog
+  - psychology
+  - psychometrics
+tags:
+  - R
+  - psychology
+  - psychometrics
+  - psychlab
+  - lavaan
+  - EFA
+  - CFA
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2023-06-11T10:23:46+03:00'
+featu"#ff8989": no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+## Intro
+
+This is meant to be an extremely short, entirely non-technical reference for running EFA and CFA in R effortlessly and with the simplest code, while also providing some theoretical intuition about the methods. 
+
+
+**Classical Test Theory**: No concept of factors (latent variables), so it takes observed item scores as face values except for measurement error. Scores are the unweighted sum of item scores.
+
+**Exploratory Factor Analysis (EFA)**: Is an abductive method of theory generation that exploits an important principle of scientific inference known as the principle of the common cause - the common cause is one or multiple factors (latent variables) that *cause* the observed variables scores (item scores). Scores are an empirically weighted sum of item scores, where weights are determined by the items' correlations to each other. In the psychometric process, EFA is most appropriate when one has few, if any, hypotheses about a scale's internal structure.  
+
+factor indeterminacy - intrinsic problem of factor analysis related to interpretation of factors.
+
+**Confirmatory Factor Analysis (CFA)**: Extends EFA to allow the relationships between factors (latent variables) to be modeled.
+parameters are specified in advance, so no factor indeterminacy.
+
+
+## Set up and Data
+
+## Packages and Settings
+
+```{r, include=FALSE}
+library(psychTools) # for bfi data
+library(psych)      # for EFA & general psychometrics
+library(sjPlot)     # for outputing tables
+library(lavaan)     # for CFA
+```
+
+```{r}
+# define a CSS theme for sjPlot tables
+apa_css_theme <- list(
+    css.thead = "border-top: 1px solid; border-bottom: 1px solid;",
+    css.tdata = "padding:0.2cm; text-align:right; vertical-align:middle;",
+    css.lasttablerow = ""
+) 
+```
+
+## Data
+
+Important thing to note is that there are reverse coded items (items that state the oposite )
+
+```{r}
+# Get data BFI from psych package
+df <- psychTools::bfi[, 1:25]
+df <- na.omit(df)      
+df_dictionary <- cbind(ColName = rownames(psychTools::bfi.dictionary), psychTools::bfi.dictionary)
+```
+
+Here's what the data looks and the corresponding dictionary look like:
+
+```{r}
+head(df) |> gt::gt()
+head(df_dictionary[, c(1, 3, 5, 8, 7)], 10) |> gt::gt()
+```
+
+## Split data
+
+We split data into a sample used for exploration and hypothesis generation (training the model; i.e. EFA) and one for (testing the model; i.e. CFA). 
+
+```{r}
+# Establish two sets of indices on which to split the dataset
+N <- nrow(df)
+indices <- seq(1, N)
+set.seed(42)
+indices_EFA <- sample(indices, floor((.5*N)))
+indices_CFA <- indices[!(indices %in% indices_EFA)]
+
+# Use those indices to split the dataset into halves for EFA and CFA
+df_EFA <- df[indices_EFA, ]
+df_CFA <- df[indices_CFA, ]
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r rotation, echo=FALSE, warning=FALSE, message=FALSE}
+# blogdown::build_site(build_rmd = "E:/Github/cpapasteri.github.io/content/post/2023-06-11-pocket-guide-efa-cfa-in-r/index.en.Rmarkdown")
+
+library(ggplot2)
+library(cowplot)
+library(LearnGeom)
+
+# 1 -------------------------------------------------------------------------
+factors <- data.frame(
+  x = c(1, 1),
+  y = c(1, -1),
+  label = c("F[1]", "F[2]"),
+  Ox = c(0, 0),
+  Oy = c(0, 0)
+)
+
+items <- data.frame(
+  x = c(0.8, 0.8),
+  y = c(0.3, -0.3),
+  label = c("i[1]", "i[2]"),
+  Ox = c(0, 0),
+  Oy = c(0, 0)
+)
+
+item1_proj <- data.frame(
+  x = c(
+    LearnGeom::ProjectPoint(
+      unlist(items[1, 1:2]), 
+      LearnGeom::CreateLinePoints(unlist(items[1, 4:5]), unlist(factors[1, 1:2])))[1],
+    LearnGeom::ProjectPoint(
+      unlist(items[1, 1:2]), 
+      LearnGeom::CreateLinePoints(unlist(items[1, 4:5]), unlist(factors[2, 1:2])))[1]
+  ),
+  y = c(
+    LearnGeom::ProjectPoint(
+      unlist(items[1, 1:2]), 
+      LearnGeom::CreateLinePoints(unlist(items[1, 4:5]), unlist(factors[1, 1:2])))[2],
+    LearnGeom::ProjectPoint(
+      unlist(items[1, 1:2]), 
+      LearnGeom::CreateLinePoints(unlist(items[1, 4:5]), unlist(factors[2, 1:2])))[2]
+  ),
+  label = c("a[i[1]]", ""),
+  x_i = items$x[[1]],
+  y_i = items$y[[1]]  
+) 
+item1_proj$dist <- 1 - unlist(LearnGeom::DistancePoints(item1_proj[, 1:2], item1_proj[, 4:5])) + 0.1
+
+item2_proj <- data.frame(
+  x = c(
+    LearnGeom::ProjectPoint(
+      unlist(items[2, 1:2]), 
+      LearnGeom::CreateLinePoints(unlist(items[2, 4:5]), unlist(factors[1, 1:2])))[1],
+    LearnGeom::ProjectPoint(
+      unlist(items[2, 1:2]), 
+      LearnGeom::CreateLinePoints(unlist(items[2, 4:5]), unlist(factors[2, 1:2])))[1]
+  ),
+  y = c(
+    LearnGeom::ProjectPoint(
+      unlist(items[2, 1:2]), 
+      LearnGeom::CreateLinePoints(unlist(items[2, 4:5]), unlist(factors[1, 1:2])))[2],
+    LearnGeom::ProjectPoint(
+      unlist(items[2, 1:2]), 
+      LearnGeom::CreateLinePoints(unlist(items[2, 4:5]), unlist(factors[2, 1:2])))[2]
+  ),
+  label = c("", "a[i[2]]"),
+  x_i = items$x[[2]],
+  y_i = items$y[[2]] 
+)  
+item2_proj$dist <- 1 - unlist(LearnGeom::DistancePoints(item2_proj[, 1:2], item2_proj[, 4:5])) + 0.1
+
+plot1 <- 
+  ggplot() + 
+    geom_segment(
+      data = factors,
+      aes(x = Ox, y = Oy, xend = x, yend = y),
+      arrow = arrow(length = unit(0.5, "cm")),
+      color = "black", linewidth = 3
+    ) +
+    geom_text(
+      data = factors,
+      aes(x = x, y = y, label = label), parse = TRUE,
+      hjust = 3
+    ) +
+    geom_segment(
+      data = items,
+      aes(x = Ox, y = Oy, xend = x, yend = y),
+      arrow = arrow(length = unit(0.5, "cm")),
+      color = "#ff8989", linewidth = 1.5, alpha = 0.2
+    ) +
+     geom_text(
+      data = items,
+      aes(x = x, y = y, label = label), parse = TRUE,
+      hjust = -1
+    ) +
+     geom_point(
+      data = items,
+      aes(x = x, y = y),
+      color = "black", size = 2.5
+    ) + 
+    geom_segment(
+      data = item1_proj,
+      aes(x = x_i, y = y_i, xend = x, yend = y, alpha = dist),
+      arrow = arrow(length = unit(0.3, "cm"), angle = 20, type = "closed"),
+      color = "black", linewidth = 0.5, lty = "longdash", show.legend = FALSE
+    ) +
+    geom_text(
+      data = item1_proj,
+      aes(x = x, y = y, label = label), parse = TRUE,
+      hjust = 1, vjust = -0.5
+    ) +
+    geom_segment(
+      data = item2_proj,
+      aes(x = x_i, y = y_i, xend = x, yend = y, alpha = dist),
+      arrow = arrow(length = unit(0.3, "cm"), angle = 20, type = "closed"),
+      color = "black", linewidth = 0.5, lty = "longdash", show.legend = FALSE
+    ) +
+    geom_text(
+      data = item2_proj,
+      aes(x = x, y = y, label = label), parse = TRUE,
+      hjust = 1, vjust = 0.5, nudge_y = -0.05
+    ) +
+    coord_equal(xlim = c(0, 1.3), ylim = c(-1, 1)) +
+    theme_void()
+
+
+# 2 -------------------------------------------------------------------------
+factors <- data.frame(
+  x = c(1, 1),
+  y = c(0.6, -0.6),
+  label = c("F[1]", "F[2]"),
+  Ox = c(0, 0),
+  Oy = c(0, 0)
+)
+
+items <- data.frame(
+  x = c(0.8, 0.8),
+  y = c(0.3, -0.3),
+  label = c("i[1]", "i[2]"),
+  Ox = c(0, 0),
+  Oy = c(0, 0)
+)
+
+ProjectPointParallel <- function(P, Line, P1 = c(0, 0), P2) {
+  # Line is Factor line to intersect; P1, P2 define parallel Factor line
+  AngleParallel = LearnGeom::Angle(P2, c(0, 0), c(1, 0))  # angle to Ox
+  if (P2[1] >= 0 & P2[2] < 0) AngleParallel = 360 - AngleParallel  # hacky       
+  Line1 = LearnGeom::CreateLineAngle(P, AngleParallel)
+  proj = LearnGeom::IntersectLines(Line, Line1)
+  names(proj) = c("X", "Y")
+  return(proj)
+}
+
+item1_proj <- data.frame(
+  x = c(
+    ProjectPointParallel(
+      unlist(items[1, 1:2]),
+      LearnGeom::CreateLinePoints(unlist(items[1, 4:5]), unlist(factors[1, 1:2])),
+      unlist(factors[1, 4:5]), unlist(factors[2, 1:2])
+    )[1],
+    ProjectPointParallel(
+      unlist(items[1, 1:2]),
+      LearnGeom::CreateLinePoints(unlist(items[1, 4:5]), unlist(factors[2, 1:2])),
+      unlist(factors[1, 4:5]), unlist(factors[1, 1:2])
+    )[1]
+  ),
+  y = c(
+    ProjectPointParallel(
+      unlist(items[1, 1:2]),
+      LearnGeom::CreateLinePoints(unlist(items[1, 4:5]), unlist(factors[1, 1:2])),
+      unlist(factors[1, 4:5]), unlist(factors[2, 1:2])
+    )[2],
+    ProjectPointParallel(
+      unlist(items[1, 1:2]),
+      LearnGeom::CreateLinePoints(unlist(items[1, 4:5]), unlist(factors[2, 1:2])),
+      unlist(factors[1, 4:5]), unlist(factors[1, 1:2])
+    )[2]
+  ),
+  label = c("a[i[1]]", ""),
+  x_i = items$x[[1]],
+  y_i = items$y[[1]]
+) 
+item1_proj$dist <- 1 - unlist(LearnGeom::DistancePoints(item1_proj[, 1:2], item1_proj[, 4:5])) 
+
+item2_proj <- data.frame(
+  x = c(
+    ProjectPointParallel(
+      unlist(items[2, 1:2]),
+      LearnGeom::CreateLinePoints(unlist(items[1, 4:5]), unlist(factors[1, 1:2])),
+      unlist(factors[1, 4:5]), unlist(factors[2, 1:2])
+    )[1],
+    ProjectPointParallel(
+      unlist(items[2, 1:2]),
+      LearnGeom::CreateLinePoints(unlist(items[1, 4:5]), unlist(factors[2, 1:2])),
+      unlist(factors[1, 4:5]), unlist(factors[1, 1:2])
+    )[1]
+  ),
+  y = c(
+    ProjectPointParallel(
+      unlist(items[2, 1:2]),
+      LearnGeom::CreateLinePoints(unlist(items[1, 4:5]), unlist(factors[1, 1:2])),
+      unlist(factors[1, 4:5]), unlist(factors[2, 1:2])
+    )[2],
+    ProjectPointParallel(
+      unlist(items[2, 1:2]),
+      LearnGeom::CreateLinePoints(unlist(items[1, 4:5]), unlist(factors[2, 1:2])),
+      unlist(factors[1, 4:5]), unlist(factors[1, 1:2])
+    )[2]
+  ),
+  label = c("", "a[i[2]]"),
+  x_i = items$x[[2]],
+  y_i = items$y[[2]],
+  dist = c(0.5, 1)
+)  
+item2_proj$dist <- 1 - unlist(LearnGeom::DistancePoints(item2_proj[, 1:2], item2_proj[, 4:5]))
+
+plot2 <- 
+  ggplot() + 
+    geom_segment(
+      data = factors,
+      aes(x = Ox, y = Oy, xend = x, yend = y),
+      arrow = arrow(length = unit(0.5, "cm")),
+      color = "black", linewidth = 3
+    ) +
+    geom_text(
+      data = factors,
+      aes(x = x, y = y, label = label), parse = TRUE,
+      hjust = 3
+    ) +
+    geom_segment(
+      data = items,
+      aes(x = Ox, y = Oy, xend = x, yend = y),
+      arrow = arrow(length = unit(0.5, "cm")),
+      color = "#ff8989", linewidth = 1.5, alpha = 0.2
+    ) +
+     geom_text(
+      data = items,
+      aes(x = x, y = y, label = label), parse = TRUE,
+      hjust = -1
+    ) +
+     geom_point(
+      data = items,
+      aes(x = x, y = y),
+      color = "black", size = 2.5
+    ) + 
+    geom_segment(
+      data = item1_proj,
+      aes(x = x_i, y = y_i, xend = x, yend = y, alpha = dist),
+      arrow = arrow(length = unit(0.3, "cm"), angle = 20, type = "closed"),
+      color = "black", linewidth = 0.5, lty = "longdash", show.legend = FALSE
+    ) +
+    geom_text(
+      data = item1_proj,
+      aes(x = x, y = y, label = label), parse = TRUE,
+      hjust = 1, vjust = -0.5
+    ) +
+    geom_segment(
+      data = item2_proj,
+      aes(x = x_i, y = y_i, xend = x, yend = y, alpha = dist),
+      arrow = arrow(length = unit(0.3, "cm"), angle = 20, type = "closed"),
+      color = "black", linewidth = 0.5, lty = "longdash", show.legend = FALSE
+    ) +
+    geom_text(
+      data = item2_proj,
+      aes(x = x, y = y, label = label), parse = TRUE,
+      hjust = 1, vjust = 0.5, nudge_y = -0.05
+    ) +
+    coord_equal(xlim = c(0, 1), ylim = c(-1, 1)) +
+    theme_void()
+
+cowplot::plot_grid(plot1, plot2, labels = c("A", "B"))
+```
+
+
+
+One single common factor
+
+```{r, diagram1, echo=FALSE, warning=FALSE, message=FALSE}
+library(gt)
+library(psych)
+library(lavaan)
+library(lavaanPlot)
+
+# --------------------------------------------------------------------
+# Single
+singl <- matrix(0.64, 4, 4)
+diag(singl) <- 1
+row.names(singl) <- colnames(singl) <- paste0("i", 1:4)
+
+t1 <- 
+  singl |>
+    as.data.frame() |>
+    gt::gt(rownames_to_stub = TRUE) |>
+    gt::tab_style(
+      style = gt::cell_fill(color = "#bf93f5"),
+      locations = gt::cells_body(
+        columns = c(i1:i4), 
+        rows = c(1:4))
+    ) 
+
+lav_singl <- "
+F =~ i1 + i2 + i3 + i4
+"
+lav_singl_m <- lavaan::cfa(lav_singl, sample.cov = singl, estimator = "ML", std.lv = TRUE, sample.nobs = 1000) # also psych::fa(singl, nfactors = 1, fm = "ml")
+lav_singl_d <- lavaanPlot::lavaanPlot2(model = lav_singl_m, graph_options = list(rankdir = "BT"), include = "covs", coef_labels = TRUE) 
+
+d1 <- 
+  DiagrammeR::grViz('
+    digraph {
+      graph [rankdir = "BT"]
+    
+      "1" [label = "F", shape = "oval", group = "latent", fillcolor = "#bf93f5", style = filled] 
+      "2" [label = "i1", shape = "box", group = "obs", fillcolor = "#bf93f5", style = filled] 
+      "3" [label = "i2", shape = "box", group = "obs", fillcolor = "#bf93f5", style = filled] 
+      "4" [label = "i3", shape = "box", group = "obs", fillcolor = "#bf93f5", style = filled] 
+      "5" [label = "i4", shape = "box", group = "obs", fillcolor = "#bf93f5", style = filled] 
+      
+      "2"->"1" [dir = "back", label = "0.8"] 
+      "3"->"1" [dir = "back", label = "0.8"] 
+      "4"->"1" [dir = "back", label = "0.8"] 
+      "5"->"1" [dir = "back", label = "0.8"] 
+    }
+  ')
+```
+
+<div class="row">
+  <div class="col-md-4" markdown="1">
+
+```{r, diagram1_t, echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+cat(t1 |> gt::as_raw_html())
+```
+
+  </div>
+  <div class="col-md-8" markdown="1">
+
+```{r, diagram1_d, echo=FALSE, warning=FALSE, message=FALSE, out.width="90%", out.height="90%"}
+d1
+```
+
+  </div>
+</div>
+
+
+Two uncorrelated common factors
+
+```{r, diagram2, echo=FALSE, warning=FALSE, message=FALSE}
+# --------------------------------------------------------------------
+# Uncorrelated
+uncor <- matrix(0, 4, 4)
+uncor[1:2, 1:2] <- 0.64
+uncor[3:4, 3:4] <- 0.64
+diag(uncor) <- 1
+row.names(uncor) <- colnames(uncor) <- paste0("i", 1:4)
+
+t2 <- 
+  uncor |>
+    as.data.frame() |>
+    gt::gt(rownames_to_stub = TRUE) |>
+    gt::tab_style(
+      style = gt::cell_fill(color = "#ff8989"),
+      locations = gt::cells_body(
+        columns = c(i1, i2), 
+        rows = c(1, 2))
+    ) |>
+    gt::tab_style(
+    style = gt::cell_fill(color = "#898bff"),
+    locations = gt::cells_body(
+      columns = c(i3, i4), 
+      rows = c(3, 4))
+    )
+  
+lav_uncor <- "
+F1 =~ a*i1 + a*i2
+F2 =~ b*i3 + b*i4
+F1 ~~ 0*F2
+"
+lav_uncor_m <- lavaan::cfa(lav_uncor, sample.cov = uncor, estimator = "ML", std.lv = TRUE, sample.nobs = 1000) # also psych::fa(uncor, nfactors = 2, fm = "ml")
+lav_uncor_d <- lavaanPlot::lavaanPlot2(model = lav_uncor_m, graph_options = list(rankdir = "BT"), include = "covs", coef_labels = TRUE)
+
+d2 <- 
+  DiagrammeR::grViz('
+    digraph {
+      graph [rankdir = "BT"]
+    
+      "1" [label = "F1", shape = "oval", group = "latent", fillcolor = "#ff8989", style = filled] 
+      "2" [label = "F2", shape = "oval", group = "latent", fillcolor = "#898bff", style = filled] 
+      "3" [label = "i1", shape = "box", group = "obs", fillcolor = "#ff8989", style = filled] 
+      "4" [label = "i2", shape = "box", group = "obs", fillcolor = "#ff8989", style = filled] 
+      "5" [label = "i3", shape = "box", group = "obs", fillcolor = "#898bff", style = filled] 
+      "6" [label = "i4", shape = "box", group = "obs", fillcolor = "#898bff", style = filled]
+      
+      "3"->"1" [dir = "back", label = "0.8"] 
+      "4"->"1" [dir = "back", label = "0.8"] 
+      "5"->"2" [dir = "back", label = "0.8"] 
+      "6"->"2" [dir = "back", label = "0.8"] 
+      {rank=same;"1";"2";}
+    }
+  ')
+```
+
+<div class="row">
+  <div class="col-md-4" markdown="1">
+
+```{r, diagram2_t, echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+cat(t2 |> gt::as_raw_html())
+```
+
+  </div>
+  <div class="col-md-8" markdown="1">
+
+```{r, diagram2_d, echo=FALSE, warning=FALSE, message=FALSE, out.width="90%", out.height="90%"}
+d2
+```
+
+  </div>
+</div>
+
+
+Two correlated common factors
+
+```{r, diagram3, echo=FALSE, warning=FALSE, message=FALSE, out.width="80%", out.height="80%"}
+# --------------------------------------------------------------------
+# Correlated
+corel <- matrix(0.41, 4, 4)
+corel[1:2, 1:2] <- 0.64
+corel[3:4, 3:4] <- 0.64
+diag(corel) <- 1
+row.names(corel) <- colnames(corel) <- paste0("i", 1:4)
+
+t3 <- 
+  corel |>
+    as.data.frame() |>
+    gt::gt(rownames_to_stub = TRUE) |>
+    gt::tab_style(
+      style = gt::cell_fill(color = "#ff8989"),
+      locations = gt::cells_body(
+        columns = c(i1, i2), 
+        rows = c(1, 2))
+    ) |>
+    gt::tab_style(
+    style = gt::cell_fill(color = "#898bff"),
+    locations = gt::cells_body(
+      columns = c(i3, i4), 
+      rows = c(3, 4))
+    ) |>
+     gt::tab_style(
+      style = gt::cell_fill(color = "#bf93f5"),
+      locations = gt::cells_body(
+        columns = c(i1, i2), 
+        rows = c(3, 4))
+    ) |>
+    gt::tab_style(
+    style = gt::cell_fill(color = "#bf93f5"),
+    locations = gt::cells_body(
+      columns = c(i3, i4), 
+      rows = c(1, 2))
+    )
+
+lav_corel <- "
+F1 =~ i1 + i2
+F2 =~ i3 + i4
+"
+lav_corel_m <- lavaan::cfa(lav_corel, sample.cov = corel, estimator = "ML", std.lv = TRUE, sample.nobs = 1000) # also psych::fa(corel, nfactors = 2, fm = "ml", rotate = "oblimin")
+lav_corel_d <- lavaanPlot::lavaanPlot2(model = lav_corel_m, graph_options = list(rankdir = "BT"), include = "covs", coef_labels = TRUE) 
+
+d3 <- 
+  DiagrammeR::grViz('
+    digraph {
+      graph [rankdir = "BT"]
+      
+      "1" [label = "F1", shape = "oval", group = "latent", fillcolor = "#ff8989", style = filled] 
+      "2" [label = "F2", shape = "oval", group = "latent", fillcolor = "#898bff", style = filled] 
+      "3" [label = "i1", shape = "box", group = "obs", fillcolor = "#ff8989", style = filled] 
+      "4" [label = "i2", shape = "box", group = "obs", fillcolor = "#ff8989", style = filled] 
+      "5" [label = "i3", shape = "box", group = "obs", fillcolor = "#898bff", style = filled] 
+      "6" [label = "i4", shape = "box", group = "obs", fillcolor = "#898bff", style = filled]
+        
+      "3"->"1" [dir = "back", label = "0.8"] 
+      "4"->"1" [dir = "back", label = "0.8"] 
+      "5"->"2" [dir = "back", label = "0.8"] 
+      "6"->"2" [dir = "back", label = "0.8"] 
+      "1"->"2" [dir = "both", label = "0.64", tailport = "s", headport = "s"] 
+      {rank=same;"1";"2";}
+    }
+  ')
+```
+
+<div class="row">
+  <div class="col-md-4" markdown="1">
+
+```{r, diagram3_t, echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+cat(t3 |> gt::as_raw_html())
+```
+
+  </div>
+  <div class="col-md-8" markdown="1">
+
+```{r, diagram3_d, echo=FALSE, warning=FALSE, message=FALSE, out.width="90%", out.height="90%"}
+d3
+```
+
+  </div>
+</div>
+
+
+
+In Confirmatory Factor Analysis, relationships among factors may be specified, giving rise to the ability to test higher-order structures. For example, the correlation between specific factors F1 and F2 could be accounted for by a higher-order general factor F.   
+
+```{r, diagram4, echo=FALSE, warning=FALSE, message=FALSE}
+lav_corel2 <- "
+F1 =~ i1 + i2
+F2 =~ i3 + i4
+F =~ F1 + F2
+"
+lav_corel2_m <- lavaan::cfa(lav_corel2, sample.cov = corel, estimator = "ML", std.lv = TRUE, sample.nobs = 1000) # this is higher-order, no equivalent in fa()
+lav_corel2_d <- lavaanPlot::lavaanPlot2(model = lav_corel2_m, graph_options = list(rankdir = "BT"), include = "covs", coef_labels = TRUE)
+
+d4 <- 
+  DiagrammeR::grViz('
+    digraph {
+      graph [rankdir = "BT"]
+  
+      "1" [label = "F1", shape = "oval", group = "latent", fillcolor = "#ff8989", style = filled] 
+      "2" [label = "F2", shape = "oval", group = "latent", fillcolor = "#898bff", style = filled] 
+      "3" [label = "F", shape = "oval", group = "latent", fillcolor = "#bf93f5", style = filled] 
+      "4" [label = "i1", shape = "box", group = "obs", fillcolor = "#ff8989", style = filled] 
+      "5" [label = "i2", shape = "box", group = "obs", fillcolor = "#ff8989", style = filled] 
+      "6" [label = "i3", shape = "box", group = "obs", fillcolor = "#898bff", style = filled] 
+      "7" [label = "i4", shape = "box", group = "obs", fillcolor = "#898bff", style = filled] 
+      
+      "4"->"1" [dir = "back", label = "0.8"] 
+      "5"->"1" [dir = "back", label = "0.8"] 
+      "6"->"2" [dir = "back", label = "0.8"] 
+      "7"->"2" [dir = "back", label = "0.8"] 
+      "1"->"3" [dir = "back", label = "0.8"] 
+      "2"->"3" [dir = "back", label = "0.8"]
+      
+      # small hack to preserve order
+      "1"->"2" [dir = "both", style = invis]
+      {rank=same;"1";"2";}
+    }
+  ')
+```
+
+```{r, diagram4_d, echo=FALSE, warning=FALSE, message=FALSE, out.width="50%", out.height="50%", fig.align='center'}
+d4
+```
+
+
