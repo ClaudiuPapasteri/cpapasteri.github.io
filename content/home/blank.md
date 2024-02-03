@@ -19,13 +19,13 @@ design:
   columns: "1"
   background:
     image: good_mod_2_2.jpg
-    image_darken: 1.1
+    image_darken: 1
     image_parallax: true
     image_position: center
-    image_size: cover
+    image_size: contain
     text_color_light: false
   spacing:
-    padding: ["20px", "250px", "20px", "0px"]
+    padding: ["50px", "250px", "20px", "0"]
 ---
 <!-- &ensp; -->
 &ensp;
@@ -36,11 +36,15 @@ Many of my posts focus on statistics and the R language, adhering to https://www
 
 I will also periodically post course materials for subjects I teach at the University.
 
+<!--
 {{% callout note %}}
 **This website is still in construction.**
 
 This year I am planning to add the *Courses* section. 
 {{% /callout %}}
+--> 
+
+{{< icon name="info-circle" pack="fas" >}} **This website is still in construction.** This year I am planning to add the *Courses* section.
 
 &ensp;
 
