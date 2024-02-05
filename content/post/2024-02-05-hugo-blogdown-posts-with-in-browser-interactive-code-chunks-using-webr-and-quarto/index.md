@@ -197,7 +197,7 @@ globalThis.qwebrCustomizedWebROptions = {
 };
 
 // Store cell data
-globalThis.qwebrCellDetails = [{"id":1,"code":"message <- c(\n  \"I ran the code chunk\",\n  \"I already knew what was going to happen\",\n  \"I still wanted to test it\"\n)\n\nsample(message, size = 1)","options":{"out-width":"700px","context":"interactive","message":"true","fig-width":7,"fig-height":5,"comment":"","fig-cap":"","label":"unnamed-chunk-1","classes":"","results":"markup","warning":"true","dpi":72,"out-height":"","output":"true"}},{"id":2,"code":"webr::shim_install()   # so we can use install.packages() instead of webr::install()\ninstall.packages(\"ggplot2\", quiet = TRUE) ","options":{"out-width":"700px","context":"interactive","message":"true","fig-width":7,"fig-height":5,"comment":"","fig-cap":"","label":"unnamed-chunk-2","classes":"","results":"markup","warning":"true","dpi":72,"out-height":"","output":"false"}},{"id":3,"code":"library(\"ggplot2\")\n\nggplot(iris, aes(Sepal.Length, Petal.Length, colour = Species)) + \n  geom_point()","options":{"out-width":"700px","context":"interactive","message":"true","fig-width":7,"fig-height":5,"comment":"","fig-cap":"","label":"unnamed-chunk-3","classes":"","results":"markup","warning":"true","dpi":72,"out-height":"","output":"true"}},{"id":4,"code":"1 + ","options":{"out-width":"700px","context":"interactive","message":"true","fig-width":7,"fig-height":5,"comment":"","fig-cap":"","label":"unnamed-chunk-4","classes":"","results":"markup","warning":"true","dpi":72,"out-height":"","output":"true"}}];
+globalThis.qwebrCellDetails = [{"id":1,"options":{"fig-cap":"","out-height":"","classes":"","context":"interactive","dpi":72,"fig-width":7,"output":"true","out-width":"700px","fig-height":5,"results":"markup","warning":"true","comment":"","message":"true","label":"unnamed-chunk-1"},"code":"message <- c(\n  \"I ran the code chunk\",\n  \"I already knew what was going to happen\",\n  \"I still wanted to test it\"\n)\n\nsample(message, size = 1)"},{"id":2,"options":{"fig-cap":"","out-height":"","classes":"","context":"interactive","dpi":72,"fig-width":7,"output":"false","out-width":"700px","fig-height":5,"results":"markup","warning":"true","comment":"","message":"true","label":"unnamed-chunk-2"},"code":"webr::shim_install()   # so we can use install.packages() instead of webr::install()\ninstall.packages(\"ggplot2\", quiet = TRUE) "},{"id":3,"options":{"fig-cap":"","out-height":"","classes":"","context":"interactive","dpi":72,"fig-width":7,"output":"true","out-width":"700px","fig-height":5,"results":"markup","warning":"true","comment":"","message":"true","label":"unnamed-chunk-3"},"code":"library(\"ggplot2\")\n\nggplot(iris, aes(Sepal.Length, Petal.Length, colour = Species)) + \n  geom_point()"},{"id":4,"options":{"fig-cap":"","out-height":"","classes":"","context":"interactive","dpi":72,"fig-width":7,"output":"true","out-width":"700px","fig-height":5,"results":"markup","warning":"true","comment":"","message":"true","label":"unnamed-chunk-4"},"code":"1 + "}];
 
 </script>
 
@@ -1195,10 +1195,10 @@ Hugo shortcodes and Quarto shortcodes share the same basic syntax, so collisions
 
 There are multiple ways to deal with this describred in the [offical docs](https://quarto.org/docs/output-formats/hugo.html) but the safe way is to use a markdown raw block around the entire construct.
 
-For example, to comply with [R-bloggers](https://www.r-bloggers.com/) requirements for relative links in RSS feed using my old rmarkdown posts I needed to reference `foo.png` this way: `![]({{< blogdown/postref >}}foo.png)`. The same would work in most cases with Quarto, but the safe way is:
+For example, to comply with [R-bloggers](https://www.r-bloggers.com/) requirements for relative links in RSS feed using my old rmarkdown posts I needed to reference `foo.png` this way: `![]({{</* blogdown/postref */>}}foo.png)`. The same would work in most cases with Quarto, but the safe way is:
 
-``` default
-`![foo image within Quarto within Hugo site]({{< blogdown/postref >}}foo.png)`{=markdown}
+``` latex
+`![foo image within Quarto within Hugo site]({{</* blogdown/postref */>}}foo.png)`{=markdown}
 ```
 
 ![foo image within Quarto within Hugo site]({{< blogdown/postref >}}foo.png)

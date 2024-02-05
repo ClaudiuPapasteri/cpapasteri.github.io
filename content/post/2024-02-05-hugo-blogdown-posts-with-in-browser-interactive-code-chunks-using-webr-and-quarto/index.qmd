@@ -140,10 +140,10 @@ Hugo shortcodes and Quarto shortcodes share the same basic syntax, so collisions
 
 There are multiple ways to deal with this describred in the [offical docs](https://quarto.org/docs/output-formats/hugo.html) but the safe way is to use a markdown raw block around the entire construct.
 
-For example, to comply with [R-bloggers](https://www.r-bloggers.com/) requirements for relative links in RSS feed using my old rmarkdown posts I needed to reference `foo.png` this way: `![]({{< blogdown/postref >}}foo.png)`. The same would work in most cases with Quarto, but the safe way is:
+For example, to comply with [R-bloggers](https://www.r-bloggers.com/) requirements for relative links in RSS feed using my old rmarkdown posts I needed to reference `foo.png` this way: `![]({{{</* blogdown/postref */>}}}foo.png)`. The same would work in most cases with Quarto, but the safe way is:
 
-``` default
-`![foo image within Quarto within Hugo site]({{< blogdown/postref >}}foo.png)`{=markdown}
+``` latex 
+`![foo image within Quarto within Hugo site]({{{</* blogdown/postref */>}}}foo.png)`{=markdown}
 ```
 
 `![foo image within Quarto within Hugo site]({{< blogdown/postref >}}foo.png)`{=markdown}
