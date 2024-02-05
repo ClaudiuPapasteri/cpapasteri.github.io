@@ -1,0 +1,209 @@
+---
+title: Hugo blogdown posts with in-browser interactive code chunks using webR and Quarto
+author: Claudiu C. Papasteri
+date: '2024-02-05'
+slug: hugo-blogdown-interactive-code-chunk-webr-quarto
+categories:
+  - R
+  - RStudio
+tags:
+  - R
+  - Rstudio
+  - Quarto
+  - WebR
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2024-02-05T11:50:15+02:00'
+featured: yes
+format:
+  hugo-md:
+    code-fold: false
+execute: 
+  warning: false
+engine: knitr
+webr: 
+  show-startup-message: false    # Disable displaying status of webR initialization
+  packages: ["glue", "tidyr"]    # Install R packages on document open
+filters:
+  - webr  
+---
+
+Running code in the browser is a great tool for education and basic reproducibility. 
+
+```{webr-r}
+message <- c(
+  "I ran the code chunk",
+  "I already knew what was going to happen",
+  "I still wanted to test it"
+)
+
+sample(message, size = 1)
+```
+
+This is quite simple to accomplish by just enclosing code chunks with `{webr-r}` instead of `{r}` in a Quarto document. Everything works by the magic of WebR that brings R inside your browser with the help of WebAssembly.
+
+At the time of writing WebR contains about 20000  R packages built for WebAssembly (check out the [webr package list](https://repo.r-wasm.org/)). 
+
+WebR works with Quarto's `.qmd` documents by virtue of the `quarto-webr` Quarto extension 
+(check out its [documentation website](https://quarto-webr.thecoatlessprofessor.com/) or [GitHub Repository](https://github.com/coatless/quarto-webr)). 
+
+The issue here lies with the fact that my blog doesn't use Quarto `.qmd` but Rmarkdown `.Rmd` files within a [`{blogdown}`](https://bookdown.org/yihui/blogdown/) blog that uses [Hugo](https://gohugo.io/) as site generator. The second issue is that I don't want to switch my blog to Quarto.   
+
+Only one thing remains to be done - me showing you how to reproduce this blog post that uses in-browser executable `{webr-r}` chunks within a `.qmd` Quarto document that is rendered within a [`{blogdown}`](https://bookdown.org/yihui/blogdown/) blog that uses [Hugo](https://gohugo.io/) as site generator.
+
+Here we go in 3 easy steps: 
+
+
+### 1. Update blog config file
+
+We need to make change to our `{blogdown}` config file to be able to use Quarto `.qmd` documents with Hugo (more info in [docs](https://quarto.org/docs/output-formats/hugo.html)). 
+
+A single change was needed to [my `config.yaml`](https://github.com/ClaudiuPapasteri/cpapasteri.github.io/commit/918f566d53fbc51e332f8d46c9b01442ed6806aa) were I added three extensions to the other `ignoreFiles`:
+
+```{r eval=FALSE}
+ignoreFiles: [\.qmd$, \.ipynb$, \.py$]
+```
+
+The only other change to the `config.yaml` would be to set Hugo's markdown renderer to allow raw HTML:
+
+```{r eval=FALSE}
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+```
+
+But many Hugo theme already have this by default. For example, I already had the following lines:
+
+```{r eval=FALSE}
+markup:
+  _merge: deep
+  goldmark:
+    renderer:
+      unsafe: true
+```
+
+### 2. Create a Quarto blog post
+
+At the moment, `{blogdown}` does not directly support Quarto and `.qmd` documents, but we can still use `blogdown:::new_post()` to issue new posts with `.qmd`. This is in part due to the similarity of Quarto to rmarkdown.
+
+Unfortunately, we cant do this from the `{blogdown}` addin (i.e. `blogdown:::new_post_addin()`).
+
+For this blog post, I ran:
+
+```{r eval=FALSE}
+blogdown::new_post(
+  title = "Hugo blogdown posts with in-browser interactive code chunks using webR and Quarto", 
+  slug = "hugo-blogdown-interactive-code-chunk-webr-quarto",
+  categories = c("R", "RStudio", "Rblog"),          
+  tags = c("R", "Rstudio", "Quarto"),
+  ext = ".qmd"
+)
+```
+
+#### Yaml header
+
+Now, we just need to update the yaml header to match Quarto. For this blog post, I used the following, but be sure to adapt it to your own:
+
+```{yaml}
+#| eval: false
+---
+title: Hugo blogdown posts with in-browser interactive code chunks using webR and Quarto
+author: Claudiu C. Papasteri
+date: '2024-02-05'
+slug: hugo-blogdown-interactive-code-chunk-webr-quarto
+categories:
+  - R
+  - RStudio
+tags:
+  - R
+  - Rstudio
+  - Quarto
+  - WebR
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2024-02-05T11:50:15+02:00'
+featured: yes
+format:
+  hugo-md:
+    code-fold: false
+execute: 
+  warning: false
+---
+```
+
+#### Figures
+
+Hugo shortcodes and Quarto shortcodes share the same basic syntax, so collisions are possible but not frequent as shortcodes not recognized by Quarto are passed through unmodified to Hugo. 
+
+There are multiple ways to deal with this describred in the [offical docs](https://quarto.org/docs/output-formats/hugo.html) but the safe way is to use a markdown raw block around the entire construct.
+
+For example, to comply with [R-bloggers](https://www.r-bloggers.com/) requirements for relative links in RSS feed using my old rmarkdown posts I needed to reference `foo.png` this way: `![]({{< blogdown/postref >}}foo.png)`. The same would work in most cases with Quarto, but the safe way is:
+
+``` default
+`![foo image within Quarto within Hugo site]({{< blogdown/postref >}}foo.png)`{=markdown}
+```
+
+`![foo image within Quarto within Hugo site]({{< blogdown/postref >}}foo.png)`{=markdown}
+
+#### Preview the Quarto document
+
+1.  Ctrl+Shit+K (or Render button in RStudio) to render to an `.md` file of special format `hugo-md`.
+2.  Then `blogdown::serve_site()` to start the server for previewing.
+
+::: {.callout-note}
+In some cases you may want to build the html before previewing: `blogdown::build_site(build_rmd = ".../content/post/.../index.md")`
+:::
+
+The above message is obtained by using a [callout block](https://quarto.org/docs/authoring/callouts.html) and this one has the clear distinctive design of Quarto. So if you are seeing it, it means you are going in the right direction. 
+
+
+### 3. Extending the Quarto document with WebR
+
+Install the `quarto-webr` extension in the folder you have the `.qmd` in. Because we are using Hugo, we need a special version that works with `hugo-md`, not the regular version (see [here](https://github.com/coatless/quarto-webr/issues/150)).
+
+```{r eval=FALSE}
+cd .../content/post/.../                       # cd into post folder
+# quarto add coatless/quarto-webr --no-prompt    # this would install the regular quarto-webr extension
+quarto add coatless/quarto-webr@test-hugo-md --no-prompt  # but we need this one that works with Hugo  
+```
+
+Add the following lines to the `yaml` header you already have:
+
+```{yaml}
+#| eval: false
+engine: knitr
+webr: 
+  show-startup-message: false    # Disable displaying status of webR initialization
+  packages: ["glue", "tidyr"]    # Install R packages on document open
+filters:
+  - webr
+```
+
+Observe that I already provided within the `yaml` that `{glue}` and `{tidyr}` should be installed on document open. Other packages we may easily install interactively in a familiar way:  
+
+```{webr-r}
+#| output: false
+webr::shim_install()   # so we can use install.packages() instead of webr::install()
+install.packages("ggplot2", quiet = TRUE) 
+```
+
+Packages are sourced and code runs as you would expect. Click run to see a `ggplot2` plot of the traditional iris dataset:
+
+```{webr-r}
+library("ggplot2")
+
+ggplot(iris, aes(Sepal.Length, Petal.Length, colour = Species)) + 
+  geom_point()
+```
+
+The extremely cool part is that you can use the interactive code cells to write your own code within. Try it out:
+
+```{webr-r}
+1 + 
+```
+
+Check out or reuse the code for [this post](https://github.com/ClaudiuPapasteri/cpapasteri.github.io/tree/main/content/post/2024-02-05-hugo-blogdown-posts-with-in-browser-interactive-code-chunks-using-webr-and-quarto).
+
